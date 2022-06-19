@@ -1,0 +1,6 @@
+boot_option=Fallback
+debug_level=Info
+power_on_after_fail=Disable
+me_state=Enable
+fast_boot=Enable
+hyper_threading=Enable

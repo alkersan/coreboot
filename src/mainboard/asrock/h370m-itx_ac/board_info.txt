@@ -1,0 +1,8 @@
+Category: desktop
+Board URL: https://www.asrock.com/mb/Intel/H370M-ITXac/
+ROM package: DIP-8
+ROM protocol: SPI
+ROM socketed: n
+ROM URL: https://www.winbond.com/resource-files/w25q128jv%20revf%2003272018%20plus.pdf
+Flashrom support: y
+Release year: 2020
