@@ -152,6 +152,13 @@ static void sata_init(struct device *dev)
 		reg32 = read32(abar + 0xa0);
 		reg32 &= ~0x00000005;
 		write32(abar + 0xa0, reg32);
+		/* PxCMD */
+		for (int port = 0; port < 6; port++) {
+			reg32 = read32(abar + 0x118 + 0x80 * port);
+			if (config->sata_hotplug_map & (1 << port))
+				reg32 |= 1 << 18;
+			write32(abar + 0x118 + 0x80 * port, reg32);
+		}
 	} else {
 	        /* IDE */
 
