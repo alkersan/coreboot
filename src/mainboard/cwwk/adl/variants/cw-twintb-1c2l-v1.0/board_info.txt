@@ -1,0 +1,3 @@
+Board name: CW-X86-P6-V1
+Board URL: https://cwwk.net/collections/x86/products/cwwk-x86-p6-development-board-pc-intel-i3-n355-n150-2xi226-v-2-5g-ddr5-4800mhz-4xm-2-nvme-firewall-router-mini-pc-2xusb3-2-2xhd
+Release year: 2024

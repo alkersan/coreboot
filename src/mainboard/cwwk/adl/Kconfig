@@ -12,12 +12,18 @@ config BOARD_CWWK_ADL_N_COMMON
 	select INTEL_GMA_HAVE_VBT
 	select SOC_INTEL_ALDERLAKE_PCH_N
 	select SUPERIO_ITE_IT8613E
+	select SYSTEM_TYPE_MINIPC
 
 config BOARD_CWWK_CW_ADL_4L_V1
 	select BOARD_CWWK_ADL_N_COMMON
 
 config BOARD_CWWK_CW_ADLNTB_1C2L_V3
 	select BOARD_CWWK_ADL_N_COMMON
+
+config BOARD_CWWK_CW_TWINTB_1C2L_V1
+	select BOARD_CWWK_ADL_N_COMMON
+	select DRIVERS_INTEL_PMC
+	select SOC_INTEL_TWINLAKE
 
 if BOARD_CWWK_ADL_N_COMMON
 
@@ -27,21 +33,29 @@ config MAINBOARD_DIR
 config VARIANT_DIR
 	default "cw-adl-4l-v1.0"      if BOARD_CWWK_CW_ADL_4L_V1
 	default "cw-adlntb-1c2l-v3.0" if BOARD_CWWK_CW_ADLNTB_1C2L_V3
+	default "cw-twintb-1c2l-v1.0" if BOARD_CWWK_CW_TWINTB_1C2L_V1
+
+config DEVICETREE
+	default "variants/\$(CONFIG_VARIANT_DIR)/devicetree.cb" if BOARD_CWWK_CW_TWINTB_1C2L_V1
+	default "devicetree.cb"
 
 config MAINBOARD_PART_NUMBER
 	default "CW-ADL-4L-V1.0"      if BOARD_CWWK_CW_ADL_4L_V1
 	default "CW-ADLNTB-1C2L-V3.0" if BOARD_CWWK_CW_ADLNTB_1C2L_V3
+	default "CW-TWINTB-1C2L-V1.0" if BOARD_CWWK_CW_TWINTB_1C2L_V1
 
 config MAINBOARD_SMBIOS_PRODUCT_NAME
 	default "CW-ADL-4L-V1.0"      if BOARD_CWWK_CW_ADL_4L_V1
 	default "CW-X86-P5-V3"        if BOARD_CWWK_CW_ADLNTB_1C2L_V3
+	default "CW-X86-P6-V1"        if BOARD_CWWK_CW_TWINTB_1C2L_V1
 
 config MAINBOARD_VERSION
 	default "CW-ADL-4L-V1.0"      if BOARD_CWWK_CW_ADL_4L_V1
 	default "CW-ADLNTB-1C2L-V3.0" if BOARD_CWWK_CW_ADLNTB_1C2L_V3
+	default "CW-TWINTB-1C2L-V1.0" if BOARD_CWWK_CW_TWINTB_1C2L_V1
 
-# Override the default variant behavior, since the data.vbt is the same
 config INTEL_GMA_VBT_FILE
+	default "src/mainboard/\$(MAINBOARDDIR)/variants/\$(CONFIG_VARIANT_DIR)/data.vbt" if BOARD_CWWK_CW_TWINTB_1C2L_V1
 	default "src/mainboard/\$(MAINBOARDDIR)/data.vbt"
 
 config NO_POST
