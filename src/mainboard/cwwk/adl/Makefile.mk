@@ -8,3 +8,4 @@ romstage-y += variants/$(VARIANT_DIR)/romstage.c
 
 ramstage-y += ramstage.c
 ramstage-y += variants/$(VARIANT_DIR)/gpio.c
+ramstage-y += variants/$(VARIANT_DIR)/ramstage.c

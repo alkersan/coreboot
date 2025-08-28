@@ -19,6 +19,7 @@ DefinitionBlock(
 	Device (\_SB.PCI0) {
 		#include <soc/intel/common/block/acpi/acpi/northbridge.asl>
 		#include <soc/intel/alderlake/acpi/southbridge.asl>
+		#include <soc/intel/alderlake/acpi/tcss.asl>
 	}
 
 	#include <southbridge/intel/common/acpi/sleepstates.asl>
