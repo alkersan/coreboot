@@ -1,0 +1,20 @@
+/* SPDX-License-Identifier: GPL-2.0-only */
+
+#include "ec.h"
+#include "gpio.h"
+
+#include <bootblock_common.h>
+#include <soc/espi.h>
+
+void bootblock_mainboard_early_init(void)
+{
+	mainboard_program_early_gpios();
+
+	espi_switch_to_spi1_pads();
+}
+
+void bootblock_mainboard_init(void)
+{
+	if (!CONFIG(SOC_AMD_COMMON_BLOCK_SIMNOW_BUILD))
+		jaguar_ec_init();
+}
