@@ -877,6 +877,14 @@ M:	Felix Held <felix-coreboot@felixheld.de>
 S:	Odd Fixes
 F:	src/soc/amd/stoneyridge/
 
+AMD Strix Halo
+M:	Anand Vaikar <a.vaikar2021@gmail.com>
+M:	David Milosevic <David.Milosevic@9elements.com>
+M:	Felix Held <felix-coreboot@felixheld.de>
+S:	Maintained
+F:	src/soc/amd/strix_halo/
+F:	src/vendorcode/amd/fsp/strix_halo/
+
 INTEL ALDERLAKE SOC
 M:	Subrata Banik <subratabanik@google.com>
 M:	Nick Vaccaro <nvaccaro@chromium.org>
