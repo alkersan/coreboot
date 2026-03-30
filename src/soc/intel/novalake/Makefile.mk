@@ -5,6 +5,10 @@ subdirs-y += ../../../cpu/intel/microcode
 subdirs-y += ../../../cpu/intel/turbo
 subdirs-y += romstage
 
+# all (bootblock, verstage, romstage, postcar, ramstage)
+# Note: gspi, i2c, pmutil, spi, uart are provided by SOC_INTEL_COMMON_FEATURE_*
+all-y += gpio.c
+
 bootblock-y += bootblock/bootblock.c
 bootblock-y += bootblock/pcd.c
 bootblock-y += bootblock/report_platform.c
@@ -14,6 +18,8 @@ romstage-$(CONFIG_SOC_INTEL_CSE_PRE_CPU_RESET_TELEMETRY) += cse_telemetry.c
 romstage-y += meminit.c
 romstage-y += pcie_rp.c
 romstage-y += reset.c
+
+smm-y += gpio.c
 
 CPPFLAGS_common += -I$(src)/soc/intel/novalake
 CPPFLAGS_common += -I$(src)/soc/intel/novalake/include
