@@ -6,7 +6,6 @@ subdirs-y += ../../../cpu/intel/turbo
 subdirs-y += romstage
 
 # all (bootblock, verstage, romstage, postcar, ramstage)
-# Note: gspi, i2c, pmutil, spi, uart are provided by SOC_INTEL_COMMON_FEATURE_*
 all-y += gpio.c
 
 bootblock-y += bootblock/bootblock.c
@@ -14,12 +13,28 @@ bootblock-y += bootblock/pcd.c
 bootblock-y += bootblock/report_platform.c
 
 romstage-$(CONFIG_SOC_INTEL_CSE_PRE_CPU_RESET_TELEMETRY) += cse_telemetry.c
-# espi.c is provided by SOC_INTEL_COMMON_FEATURE_ESPI
 romstage-y += meminit.c
 romstage-y += pcie_rp.c
 romstage-y += reset.c
 
+ramstage-y += acpi.c
+ramstage-y += chip.c
+ramstage-y += cpu.c
+ramstage-$(CONFIG_SOC_INTEL_CRASHLOG) += crashlog.c
+ramstage-y += fsp_params.c
+ramstage-y += p2sb.c
+ramstage-y += pcie_rp.c
+ramstage-y += pmc.c
+ramstage-y += reset.c
+ramstage-y += retimer.c
+ramstage-y += systemagent.c
+ramstage-y += tcss.c
+ramstage-$(CONFIG_DRIVERS_INTEL_TOUCH) += touch.c
+ramstage-y += xhci.c
+
 smm-y += gpio.c
+smm-y += p2sb.c
+smm-y += xhci.c
 
 CPPFLAGS_common += -I$(src)/soc/intel/novalake
 CPPFLAGS_common += -I$(src)/soc/intel/novalake/include
