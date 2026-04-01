@@ -315,6 +315,7 @@ menu "PSP Configuration Options"
 
 config AMDFW_CONFIG_FILE
 	string "AMD PSP Firmware config file"
+	default "src/soc/amd/glinda/fw_krackan2e_lpddr5.cfg" if SOC_AMD_FAEGAN
 	default "src/soc/amd/glinda/fw_stx_lpddr5.cfg"
 	help
 	  Specify the path/location of AMD PSP Firmware config file.
