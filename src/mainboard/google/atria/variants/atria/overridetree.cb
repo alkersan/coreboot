@@ -28,7 +28,7 @@ fw_config
 end
 
 # SPDX-License-Identifier: GPL-2.0-or-later
-chip soc/intel/pantherlake
+chip soc/intel/novalake
 
 	register "serial_io_i2c_mode" = "{
 		[PchSerialIoIndexI2C0]  = PchSerialIoDisabled,
@@ -108,4 +108,4 @@ chip soc/intel/pantherlake
 			end
 		end # I2C2
 	end # domain
-end # chip soc/intel/pantherlake
+end # chip soc/intel/novalake

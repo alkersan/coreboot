@@ -10,7 +10,7 @@ FLASH 32M {
 			RW_FWID_A 64
 		}
 		# This section starts at the 16M boundary in SPI flash.
-		# PTL does not support a region crossing this boundary,
+		# NVL does not support a region crossing this boundary,
 		# because the SPI flash is memory-mapped into two non-
 		# contiguous windows.
 		RW_SECTION_B 8M {

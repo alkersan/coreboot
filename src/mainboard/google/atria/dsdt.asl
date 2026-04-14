@@ -24,7 +24,7 @@ DefinitionBlock(
 
 	Device (\_SB.PCI0) {
 		#include <soc/intel/common/block/acpi/acpi/northbridge.asl>
-		#include <soc/intel/pantherlake/acpi/southbridge.asl>
+		#include <soc/intel/novalake/acpi/southbridge.asl>
 	}
 
 	/* ChromeOS Embedded Controller */

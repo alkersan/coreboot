@@ -1,6 +1,6 @@
 ## SPDX-License-Identifier: GPL-2.0-only
 
-comment "Atria (Intel PantherLake)"
+comment "Atria (Intel NovaLake)"
 
 config BOARD_GOOGLE_ATRIA
 	bool "->  Atria"

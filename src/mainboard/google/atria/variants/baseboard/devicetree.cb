@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-chip soc/intel/pantherlake
+chip soc/intel/novalake
 	# GPE configuration
 	register "pmc_gpe0_dw0" = "GPP_E"
 	register "pmc_gpe0_dw1" = "GPP_F"
@@ -30,4 +30,4 @@ chip soc/intel/pantherlake
 			end
 		end
 	end # domain
-end # chip soc/intel/pantherlake
+end # chip soc/intel/novalake
