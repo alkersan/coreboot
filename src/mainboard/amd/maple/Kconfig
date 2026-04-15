@@ -40,7 +40,7 @@ config AMD_SOC_CONSOLE_UART
 config MAPLE_MCHP_FW_FILE
 	string "Microchip EC firmware file"
 	depends on MAPLE_HAVE_MCHP_FW
-	default "3rdparty/blobs/mainboard/amd/maple/EC_maple.bin"
+	default "3rdparty/blobs/mainboard/amd/maple/StxhComboEC.bin"
 	help
 	  The EC firmware blob is at the EC_BODY FMAP region of the firmware image.
 
