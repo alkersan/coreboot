@@ -1,0 +1,7 @@
+comment "Maple"
+
+config BOARD_AMD_MAPLE_PHOENIX
+	bool "->  Maple for Phoenix SoC"
+
+config BOARD_AMD_MAPLE_STRIX_HALO
+	bool "->  Maple for Strix Halo SoC"

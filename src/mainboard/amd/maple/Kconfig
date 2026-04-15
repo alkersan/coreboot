@@ -1,0 +1,125 @@
+# SPDX-License-Identifier: GPL-2.0-only
+# TODO: update for Maple
+
+config BOARD_AMD_MAPLE_COMMON
+	def_bool n
+	select BOARD_ROMSIZE_KB_65536
+	select EC_ACPI
+	select SOC_AMD_COMMON_BLOCK_USE_ESPI if !SOC_AMD_COMMON_BLOCK_SIMNOW_BUILD
+	select DRIVERS_PCIE_RTD3_DEVICE
+	select DRIVERS_I2C_GENERIC
+	select SOC_AMD_COMMON_BLOCK_ESPI_RETAIN_PORT80_EN if !SOC_AMD_COMMON_BLOCK_SIMNOW_BUILD
+	select SOC_AMD_COMMON_BLOCK_SIMNOW_SUPPORTED
+	select SPI_FLASH_EXIT_4_BYTE_ADDR_MODE
+
+
+config BOARD_AMD_MAPLE_PHOENIX
+	select BOARD_AMD_MAPLE_COMMON
+	select SOC_AMD_PHOENIX_FSP
+
+config BOARD_AMD_MAPLE_STRIX_HALO
+	select BOARD_AMD_MAPLE_COMMON
+	select SOC_AMD_STRIX_HALO
+
+if BOARD_AMD_MAPLE_COMMON
+
+config FMDFILE
+	default "src/mainboard/amd/maple/board_phoenix.fmd" if BOARD_AMD_MAPLE_PHOENIX
+	default "src/mainboard/amd/maple/board_strix_halo.fmd" if BOARD_AMD_MAPLE_STRIX_HALO
+
+config MAINBOARD_DIR
+	default "amd/maple" if BOARD_AMD_MAPLE_PHOENIX || BOARD_AMD_MAPLE_STRIX_HALO
+
+config MAINBOARD_PART_NUMBER
+	default "Maple_Phoenix" if BOARD_AMD_MAPLE_PHOENIX
+	default "Maple_StrixHalo"  if BOARD_AMD_MAPLE_STRIX_HALO
+
+config DEVICETREE
+	default "devicetree_phoenix.cb" if BOARD_AMD_MAPLE_PHOENIX
+	default "devicetree_strix_halo.cb"  if BOARD_AMD_MAPLE_STRIX_HALO
+
+config MAPLE_HAVE_MCHP_FW
+	bool "Have Microchip EC firmware?"
+	default n
+
+config AMD_SOC_CONSOLE_UART
+	default y if !SOC_AMD_COMMON_BLOCK_SIMNOW_BUILD
+
+config MAPLE_MCHP_FW_FILE
+	string "Microchip EC firmware file"
+	depends on MAPLE_HAVE_MCHP_FW
+	default "3rdparty/blobs/mainboard/amd/maple/EC_maple.bin"
+	help
+	  The EC firmware blob is at the EC_BODY FMAP region of the firmware image.
+
+config ENABLE_EVAL_CARD
+	bool "Enable Eval Card"
+	help
+	  Enable the Eval Card PCIe slot
+
+config ENABLE_EVAL_19V
+	bool "Enable 19V rail for Eval Card"
+	depends on ENABLE_EVAL_CARD
+	help
+	  Enable the 19V rail for Eval Card PCIe slot
+
+config ENABLE_SSD1_MAPLE
+	bool "Enable M.2 SSD1 Slot"
+	help
+	  Enable M.2 SSD1 Slot. For Strix Halo SoC this will downgrade
+	  PCIe x8 slot to x4.
+
+choice
+	prompt "GBE Enable/WWAN LANE1 Selection"
+	default ENABLE_GBE_MAPLE
+	help
+	  When the M.2 x2 WWAN slot is enabled, the GbE LAN is disabled.
+
+config ENABLE_GBE_MAPLE
+	bool "Enable GBE (1 Lane WWAN)"
+
+config ENABLE_WWAN02_MAPLE
+	bool "Enable only WWAN (2 Lanes WWAN)"
+
+config DISABLE_WWAN_GBE_MAPLE
+	bool "Disable both WWAN and GBE"
+endchoice
+
+choice
+	prompt "SD Card Enable/WLAN LANE1 Selection"
+	default ENABLE_SDCARD_MAPLE
+	help
+	  When the M.2 x2 WLAN slot is enabled, the SD Card Reader is disabled.
+
+config ENABLE_SDCARD_MAPLE
+	bool "Enable SD Card (1 Lane WLAN)"
+
+config ENABLE_WLAN02_MAPLE
+	bool "Enable only WLAN (2 Lanes WLAN)"
+
+config DISABLE_WLAN_SD_MAPLE
+	bool "Disable both WLAN and SD Card"
+endchoice
+
+if !EM100	# EM100 defaults in soc/amd/common/blocks/spi/Kconfig
+config EFS_SPI_READ_MODE
+	default 3	# Quad IO (1-1-4)
+
+config EFS_SPI_SPEED
+	default 0	# 66MHz
+
+config EFS_SPI_MICRON_FLAG
+	default 0
+
+config NORMAL_READ_SPI_SPEED
+	default 1	# 33MHz
+
+config ALT_SPI_SPEED
+	default 1	# 33MHz
+
+config TPM_SPI_SPEED
+	default 1	# 33MHz
+
+endif # !EM100
+
+endif # BOARD_AMD_MAPLE_COMMON
