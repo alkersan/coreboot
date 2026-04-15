@@ -315,7 +315,7 @@ menu "PSP Configuration Options"
 
 config AMDFW_CONFIG_FILE
 	string "AMD PSP Firmware config file"
-	default "src/soc/amd/strix_halo/fw_stx_lpddr5.cfg"
+	default "src/soc/amd/strix_halo/fw.cfg"
 	help
 	  Specify the path/location of AMD PSP Firmware config file.
 	  By default build a LPDDR5 board.
