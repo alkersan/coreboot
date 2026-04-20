@@ -122,6 +122,7 @@ static void enable_soc_dev(struct device *dev)
 		} else {
 			printk(BIOS_DEBUG, "Skip setting PCIe ops\n");
 			dev->ops = &noop_domain_ops;
+			dev->enabled = 0;
 		}
 	}
 }
