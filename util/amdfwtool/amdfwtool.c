@@ -1536,8 +1536,13 @@ static void integrate_bios_firmwares(context *ctx,
 	ctx->current_table = current_table_save;
 }
 
-static int fill_efs_table(const amd_cb_config *cb_config, embedded_firmware *amd_romsig)
+static int integrate_efs_table(context *ctx, amd_cb_config *cb_config)
 {
+	set_current_pointer(ctx, cb_config->efs_location);
+	ctx->amd_romsig_ptr = BUFF_OFFSET(*ctx, cb_config->efs_location);
+	embedded_firmware *amd_romsig = (embedded_firmware *)ctx->amd_romsig_ptr;
+	adjust_current_pointer(ctx, sizeof(embedded_firmware), BLOB_ALIGNMENT);
+
 	amd_romsig->signature = EMBEDDED_FW_SIGNATURE;
 	amd_romsig->imc_entry = 0;
 	amd_romsig->gec_entry = 0;
@@ -1648,7 +1653,6 @@ int main(int argc, char **argv)
 	int retval = 0;
 	int targetfd;
 	context ctx = { 0 };
-	uint32_t romsig_offset;
 	amd_cb_config cb_config = {
 		.efs_spi_readmode = 0xff, .efs_spi_speed = 0xff, .efs_spi_micron_flag = 0xff
 	};
@@ -1674,12 +1678,8 @@ int main(int argc, char **argv)
 	}
 	memset(ctx.rom, 0xFF, ctx.rom_size);
 
-	romsig_offset = cb_config.efs_location;
-	set_current_pointer(&ctx, romsig_offset);
-	ctx.amd_romsig_ptr = BUFF_OFFSET(ctx, romsig_offset);
-
 	/* Fill EFS with defaults, eSPI and SPI configuration. Pointers are added later. */
-	retval = fill_efs_table(&cb_config, ctx.amd_romsig_ptr);
+	retval = integrate_efs_table(&ctx, &cb_config);
 	if (retval) {
 		fprintf(stderr, "ERROR: Failed to initialize EFS table!\n");
 		return retval;
@@ -1694,8 +1694,6 @@ int main(int argc, char **argv)
 
 	if (cb_config.efs_location != cb_config.body_location)
 		set_current_pointer(&ctx, cb_config.body_location);
-	else
-		set_current_pointer(&ctx, romsig_offset + sizeof(embedded_firmware));
 
 	integrate_firmwares(&ctx, ctx.amd_romsig_ptr, amd_fw_table);
 
