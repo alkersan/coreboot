@@ -175,7 +175,7 @@ static void usage(void)
 	printf("                                size must be larger than %dKB\n",
 		MIN_ROM_KB);
 	printf("                                and must a multiple of 1024\n");
-	printf("--location                      Location of Directory\n");
+	printf("--location                      Location of EFS table [MANDATORY]\n");
 	printf("--anywhere                      Use any 64-byte aligned addr for Directory\n");
 	printf("--sharedmem                     Location of PSP/FW shared memory\n");
 	printf("--sharedmem-size                Maximum size of the PSP/FW shared memory\n");
@@ -592,21 +592,21 @@ int amdfwtool_getopt(int argc, char *argv[], amd_cb_config *cb_config, context *
 		retval = 1;
 	}
 
+	if (!cb_config->efs_location) {
+		fprintf(stderr, "Error: No EFS location specified\n\n");
+		return 1;
+	}
+
 	printf("    AMDFWTOOL  Using ROM size of %dKB\n", ctx->rom_size / 1024);
 
 	/* If the flash size is larger than 16M, we assume the given
 	   addresses are already relative ones. Otherwise we print error.*/
-	if (cb_config->efs_location && cb_config->efs_location > ctx->rom_size) {
+	if (cb_config->efs_location > ctx->rom_size) {
 		fprintf(stderr, "Error: EFS/Directory location outside of ROM.\n\n");
 		return 1;
 	}
 	if (cb_config->body_location && cb_config->body_location > ctx->rom_size) {
 		fprintf(stderr, "Error: Body location outside of ROM.\n\n");
-		return 1;
-	}
-
-	if (!cb_config->efs_location && cb_config->body_location) {
-		fprintf(stderr, "Error AMDFW body location specified without EFS location.\n");
 		return 1;
 	}
 
@@ -628,7 +628,6 @@ int amdfwtool_getopt(int argc, char *argv[], amd_cb_config *cb_config, context *
 	} else {
 		/* efs_location is relative address now. */
 		switch (cb_config->efs_location) {
-		case 0:
 		case 0xFA0000:
 		case 0xF20000:
 		case 0xE20000:

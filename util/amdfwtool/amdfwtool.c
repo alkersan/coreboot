@@ -85,8 +85,6 @@
 
 #include "amdfwtool.h"
 
-#define AMD_ROMSIG_OFFSET	0x20000
-
 #define _MAX(A, B) (((A) > (B)) ? (A) : (B))
 
 static void output_manifest(int manifest_fd, amd_fw_entry *fw_entry);
@@ -1672,7 +1670,7 @@ int main(int argc, char **argv)
 	}
 	memset(ctx.rom, 0xFF, ctx.rom_size);
 
-	romsig_offset = cb_config.efs_location ? cb_config.efs_location : AMD_ROMSIG_OFFSET;
+	romsig_offset = cb_config.efs_location;
 	set_current_pointer(&ctx, romsig_offset);
 	ctx.amd_romsig_ptr = BUFF_OFFSET(ctx, romsig_offset);
 
