@@ -183,6 +183,7 @@ config SOC_AMD_PSP_ROM_ARMOR_64K_ERASE
 config SOC_AMD_COMMON_BLOCK_SPI_BACKUP_SPI_FLASH
 	bool
 	depends on SOC_AMD_COMMON_BLOCK_SPI
+	depends on !SOC_AMD_COMMON_BLOCK_PSP_ROM_ARMOR3 # TODO: remove once this is supported
 	help
 	  Select this option when there is a second SPI flash
 	  which can be booted of when the primary SPI flash is
