@@ -11,7 +11,7 @@
 
 #define strix_halo_mxm_dxio_descriptor {			\
 	.engine_type = PCIE_ENGINE,			\
-	.port_present = CONFIG(ENABLE_EVAL_CARD),	\
+	.port_present = 0,	\
 	.start_logical_lane = 0,				\
 	.end_logical_lane = CONFIG(ENABLE_SSD1_MAPLE) ? 3 : 7,	\
 	.device_number = 3,				\
@@ -56,9 +56,9 @@
 
 #define strix_halo_wlan_dxio_descriptor {				\
 	.engine_type = PCIE_ENGINE,			\
-	.port_present = !CONFIG(DISABLE_WLAN_SD_MAPLE),	\
-	.start_logical_lane = CONFIG(ENABLE_WLAN02_MAPLE) ? 14 : 15,	\
-	.end_logical_lane = 15,		\
+	.port_present = true,	\
+	.start_logical_lane = 10,	\
+	.end_logical_lane = CONFIG(ENABLE_WLANx2_WWANx0_MAPLE) ? 11 : 10,		\
 	.device_number = 2,				\
 	.function_number = 3,				\
 	.link_speed_capability = GEN_MAX,			\
@@ -70,9 +70,9 @@
 
 #define strix_halo_wwan_dxio_descriptor {				\
 	.engine_type = PCIE_ENGINE,			\
-	.port_present = !CONFIG(DISABLE_WWAN_GBE_MAPLE),	\
-	.start_logical_lane = 12,				\
-	.end_logical_lane = CONFIG(ENABLE_WWAN02_MAPLE) ? 13 : 12,		\
+	.port_present = true,	\
+	.start_logical_lane = CONFIG(ENABLE_WLANx0_WWANx2_MAPLE) ? 10 : 11,				\
+	.end_logical_lane = 11,		\
 	.device_number = 2,				\
 	.function_number = 5,				\
 	.link_speed_capability = GEN_MAX,			\
@@ -193,14 +193,14 @@ void mainboard_get_dxio_ddi_descriptors(
 		strix_halo_ssd1_dxio_descriptor,
 #endif
 		strix_halo_ssd0_dxio_descriptor,
+#if !CONFIG(ENABLE_WLANx0_WWANx2_MAPLE)
 		strix_halo_wlan_dxio_descriptor,
+#endif
+#if !CONFIG(ENABLE_WLANx2_WWANx0_MAPLE)
 		strix_halo_wwan_dxio_descriptor,
-#if CONFIG(ENABLE_GBE_MAPLE)
+#endif
 		strix_halo_gbe_dxio_descriptor,
-#endif
-#if CONFIG(ENABLE_SDCARD_MAPLE)
 		strix_halo_sd_dxio_descriptor,
-#endif
 	};
 
 	*dxio_descs = maple_strix_halo_dxio_descriptors;

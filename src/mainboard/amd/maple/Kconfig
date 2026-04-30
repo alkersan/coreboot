@@ -44,17 +44,6 @@ config MAPLE_MCHP_FW_FILE
 	help
 	  The EC firmware blob is at the EC_BODY FMAP region of the firmware image.
 
-config ENABLE_EVAL_CARD
-	bool "Enable Eval Card"
-	help
-	  Enable the Eval Card PCIe slot
-
-config ENABLE_EVAL_19V
-	bool "Enable 19V rail for Eval Card"
-	depends on ENABLE_EVAL_CARD
-	help
-	  Enable the 19V rail for Eval Card PCIe slot
-
 config ENABLE_SSD1_MAPLE
 	bool "Enable M.2 SSD1 Slot"
 	help
@@ -62,35 +51,19 @@ config ENABLE_SSD1_MAPLE
 	  PCIe x8 slot to x4.
 
 choice
-	prompt "GBE Enable/WWAN LANE1 Selection"
-	default ENABLE_GBE_MAPLE
+	prompt "WLAN / WWAN Lane Selection"
+	default ENABLE_WLANx1_WWANx1_MAPLE
 	help
-	  When the M.2 x2 WWAN slot is enabled, the GbE LAN is disabled.
+	  Enable 2 Lanes WLAN or 2 Lanes WWAN or 1 Lane WLAN and 1 Lane WWAN.
 
-config ENABLE_GBE_MAPLE
-	bool "Enable GBE (1 Lane WWAN)"
+config ENABLE_WLANx1_WWANx1_MAPLE
+	bool "Enable 1 Lane WLAN and 1 Lane WWAN"
 
-config ENABLE_WWAN02_MAPLE
-	bool "Enable only WWAN (2 Lanes WWAN)"
+config ENABLE_WLANx2_WWANx0_MAPLE
+	bool "Enable 2 Lanes WLAN (no WWAN)"
 
-config DISABLE_WWAN_GBE_MAPLE
-	bool "Disable both WWAN and GBE"
-endchoice
-
-choice
-	prompt "SD Card Enable/WLAN LANE1 Selection"
-	default ENABLE_SDCARD_MAPLE
-	help
-	  When the M.2 x2 WLAN slot is enabled, the SD Card Reader is disabled.
-
-config ENABLE_SDCARD_MAPLE
-	bool "Enable SD Card (1 Lane WLAN)"
-
-config ENABLE_WLAN02_MAPLE
-	bool "Enable only WLAN (2 Lanes WLAN)"
-
-config DISABLE_WLAN_SD_MAPLE
-	bool "Disable both WLAN and SD Card"
+config ENABLE_WLANx0_WWANx2_MAPLE
+	bool "Enable 2 Lanes WWAN (no WLAN)"
 endchoice
 
 if !EM100	# EM100 defaults in soc/amd/common/blocks/spi/Kconfig
