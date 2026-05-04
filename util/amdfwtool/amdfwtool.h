@@ -132,7 +132,6 @@ typedef enum _amd_fw_type {
 	AMD_FW_GEC,
 	AMD_FW_XHCI,
 	AMD_FW_INVALID,		/* Real last one to detect the last entry in table. */
-	AMD_FW_SKIP		/* This is for non-applicable options. */
 } amd_fw_type;
 
 typedef enum _amd_bios_type {
@@ -152,7 +151,6 @@ typedef enum _amd_bios_type {
 	AMD_BIOS_NV_ST = 0x6d,
 	AMD_BIOS_L2_PTR =  0x70,
 	AMD_BIOS_INVALID,
-	AMD_BIOS_SKIP
 } amd_bios_type;
 
 typedef enum _amd_addr_mode {
