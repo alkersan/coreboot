@@ -684,8 +684,13 @@ static void fill_psp_directory_to_efs(embedded_firmware *amd_romsig, void *pspdi
 static void fill_psp_bak_directory_to_efs(embedded_firmware *amd_romsig, void *pspdir_bak,
 	context *ctx, amd_cb_config *cb_config)
 {
-	if (cb_config->recovery_ab)
-		amd_romsig->psp_bak_directory =
+	if (!pspdir_bak)
+		return;
+	if (!platform_needs_ish(cb_config->soc_id))
+		return;
+
+	/* Only used on platforms that support ISH, pointing to PSP L1B */
+	amd_romsig->psp_bak_directory =
 			BUFF_TO_RUN_MODE(*ctx, pspdir_bak, AMD_ADDR_REL_BIOS);
 }
 
