@@ -62,7 +62,7 @@ Device (BAT0)
 			SBIF  [2] = Local1
 			SBIF  [4] = ECRD(RefOf(B1DV))
 			SBIF  [5] = (Local1 + 2) / 5	// 20%
-			SBIF  [6] = (Local1 + 10) / 20	// 5%
+			SBIF  [6] = (Local1 + 5) / 10	// 10%
 			SBIF  [7] = Local1 / 500	// 0.2%
 			SBIF  [8] = Local1 / 500	// 0.2%
 		}
@@ -107,7 +107,7 @@ Device (BAT0)
 			XBIF  [3] = Local1
 			XBIF  [5] = ECRD(RefOf(B1DV))
 			XBIF  [6] = (Local1 + 2) / 5	// 20%
-			XBIF  [7] = (Local1 + 10) / 20	// 5%
+			XBIF  [7] = (Local1 + 5) / 10	// 10%
 			If (B1CC != 0xffff) {
 				XBIF  [8] = ECRD(RefOf(B1CC))
 			}
