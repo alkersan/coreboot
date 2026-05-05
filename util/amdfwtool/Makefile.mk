@@ -10,6 +10,7 @@ WERROR ?= -Werror
 AMDFWTOOLCFLAGS :=-O2 -Wall -Wextra -Wshadow $(WERROR)
 AMDFWTOOLCFLAGS += -I $(top)/src/commonlib/bsd/include
 AMDFWTOOLCFLAGS += -D_GNU_SOURCE # memmem() from string.h
+AMDFWTOOLCFLAGS += -ffunction-sections -fdata-sections
 
 ifneq ($(PKG_CONFIG),)
 HOSTPKGCONFIG ?= $(PKG_CONFIG)
@@ -21,7 +22,7 @@ AMDFWTOOLCFLAGS += $(shell $(HOSTPKGCONFIG) --cflags libcrypto)
 ifneq ($(.SHELLSTATUS),0)
 $(error "Ensure that pkg-config is installed.")
 endif
-LDFLAGS += $(shell $(HOSTPKGCONFIG) --libs libcrypto)
+LDFLAGS += $(shell $(HOSTPKGCONFIG) --libs libcrypto) -Wl,-gc-sections
 
 $(objutil)/amdfwtool/%.o: $(top)/util/amdfwtool/%.c $(dir)/$(amdfwheader)
 	printf "    AMDFW      $@\n"
