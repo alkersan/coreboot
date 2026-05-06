@@ -951,7 +951,8 @@ static void integrate_psp_levels(context *ctx,
 				use_only_a ? AMD_FW_RECOVERYAB_A : AMD_FW_RECOVERYAB_B,
 				cb_config->soc_id);
 
-		copy_psp_header(ctx->pspdir_bak, ctx->pspdir);
+		if (ctx->pspdir_bak != NULL)
+			copy_psp_header(ctx->pspdir_bak, ctx->pspdir);
 	} else if (pspdir2 != NULL) {
 		assert_fw_entry(count, MAX_PSP_ENTRIES, ctx);
 		pspdir->entries[count].type = AMD_FW_L2_PTR;
@@ -996,7 +997,8 @@ static void integrate_psp_firmwares(context *ctx,
 	if (cookie == PSP_COOKIE) {
 		pspdir = new_psp_dir(ctx, cb_config, cookie);
 		ctx->pspdir = pspdir;
-		if (recovery_ab)
+		/* Only on ISH platforms a backup PSP L1B can be used. */
+		if (platform_needs_ish(cb_config->soc_id))
 			ctx->pspdir_bak = new_psp_dir(ctx, cb_config, cookie);
 		/* The ISH tables are with PSP L1. */
 		if (platform_needs_ish(cb_config->soc_id) && ctx->ish_a_dir == NULL)
