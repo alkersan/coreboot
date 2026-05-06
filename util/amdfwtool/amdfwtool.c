@@ -1361,6 +1361,10 @@ static void integrate_bios_firmwares(context *ctx,
 		/* SIG needs a size, else no choice but to skip */
 		if (fw_table[i].type == AMD_BIOS_SIG && !fw_table[i].size)
 			continue;
+		/* NV_ST needs a src and size, else no choice but to skip */
+		if (fw_table[i].type == AMD_BIOS_NV_ST &&
+		    (!fw_table[i].src || !fw_table[i].size))
+			continue;
 
 		/* Check APOB_NV requirements */
 		if (fw_table[i].type == AMD_BIOS_APOB_NV) {
