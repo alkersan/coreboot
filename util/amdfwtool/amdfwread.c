@@ -95,6 +95,19 @@ static int read_fw_header(FILE *fw, uint32_t offset, embedded_firmware *fw_heade
 	return fw_header->signature != EMBEDDED_FW_SIGNATURE;
 }
 
+/* Returns true if there's a PSP directory with the expected cookie */
+static bool test_if_psp_directory(FILE *fw, uint32_t offset, uint32_t expected_cookie)
+{
+	psp_directory_header header;
+	offset &= FILE_REL_MASK;
+
+	if (read_header(fw, offset, &header, sizeof(psp_directory_header))) {
+		ERR("Failed to read PSP header\n");
+		return false;
+	}
+	return header.cookie == expected_cookie;
+}
+
 static int read_psp_directory(FILE *fw, uint32_t offset, uint32_t expected_cookie,
 			psp_directory_header *header, psp_directory_entry **entries,
 			size_t *num_entries)
@@ -258,6 +271,7 @@ static int read_soft_fuse(FILE *fw, const embedded_firmware *fw_header)
 #define MAX_INDENTATION_LEN (MAX_NUM_LEVELS * MAX_INDENT_PER_LEVEL + 1)
 static void do_indentation_string(char *dest, uint8_t level)
 {
+	dest[0]	= '\0';
 	for (uint8_t i = 0; i < level && i < MAX_NUM_LEVELS; i++)
 		strcat(dest, "    ");
 	strcat(dest, "+-->");
@@ -382,7 +396,7 @@ static int amdfw_psp_dir_walk(FILE *fw, uint32_t psp_offset, uint32_t cookie, ui
 	psp_directory_entry *current_entries = NULL;
 	size_t num_current_entries = 0;
 	psp_directory_header header;
-	uint32_t l2_dir_offset = 0;
+	uint32_t l2_dir_offset = 0, l2b_dir_offset = 0;
 	uint32_t bios_dir_offset = 0;
 	uint32_t ish_dir_offset = 0;
 	ish_directory_table ish_dir;
@@ -437,6 +451,43 @@ static int amdfw_psp_dir_walk(FILE *fw, uint32_t psp_offset, uint32_t cookie, ui
 			amdfw_psp_dir_walk(fw, l2_dir_offset, PSPL2_COOKIE, level + 2);
 			break;
 
+		case AMD_FW_RECOVERYAB_B:
+			if (l2b_dir_offset != 0) {
+				ERR("Duplicate PSP L2B Entry, prior offset: %08x\n",
+					l2b_dir_offset);
+				free(current_entries);
+				return 1;
+			}
+
+			ish_dir_offset = relative_offset(psp_offset, addr, mode);
+			/* Test if it points to PSP L2 */
+			if (test_if_psp_directory(fw, ish_dir_offset, PSPL2_COOKIE)) {
+				/* Legacy A/B recovery has no ISH */
+				l2b_dir_offset = ish_dir_offset;
+			} else {
+				/* Newer platforms use ISH for A/B recovery */
+				if (read_ish_directory(fw, ish_dir_offset, &ish_dir) != 0) {
+					ERR("Error reading ISH directory\n");
+					free(current_entries);
+					return 1;
+				}
+				do_indentation_string(indent, level);
+				printf("    %sISHB: PSPID 0x%08x\n", indent, ish_dir.psp_id);
+				do_indentation_string(indent, level+1);
+
+				l2b_dir_offset = ish_dir.pl2_location;
+			}
+
+			if (amdfw_psp_dir_size(fw, l2b_dir_offset, PSPL2_COOKIE, &dir_size) == 0)
+				printf("    %sPSPL2(B): Dir  [0x%08x-0x%08x)\n", indent, l2b_dir_offset, l2b_dir_offset + dir_size);
+			else
+				printf("    %sPSPL2(B): Dir  @0x%08x\n", indent, l2b_dir_offset);
+			amdfw_psp_dir_walk(fw, l2b_dir_offset, PSPL2_COOKIE, level + 3);
+
+			do_indentation_string(indent, level);
+
+			break;
+
 		case AMD_FW_RECOVERYAB_A:
 			if (l2_dir_offset != 0) {
 				ERR("Duplicate PSP L2 Entry, prior offset: %08x\n",
@@ -446,18 +497,30 @@ static int amdfw_psp_dir_walk(FILE *fw, uint32_t psp_offset, uint32_t cookie, ui
 			}
 
 			ish_dir_offset = relative_offset(psp_offset, addr, mode);
-			if (read_ish_directory(fw, ish_dir_offset, &ish_dir) != 0) {
-				ERR("Error reading ISH directory\n");
-				free(current_entries);
-				return 1;
+			/* Test if it points to PSP L2 */
+			if (test_if_psp_directory(fw, ish_dir_offset, PSPL2_COOKIE)) {
+				/* Legacy A/B recovery has no ISH */
+				l2_dir_offset = ish_dir_offset;
+			} else {
+				/* Newer platforms use ISH for A/B recovery */
+				if (read_ish_directory(fw, ish_dir_offset, &ish_dir) != 0) {
+					ERR("Error reading ISH directory\n");
+					free(current_entries);
+					return 1;
+				}
+				do_indentation_string(indent, level);
+				printf("    %sISHA: PSPID 0x%08x\n", indent, ish_dir.psp_id);
+				do_indentation_string(indent, level+1);
+
+				l2_dir_offset = ish_dir.pl2_location;
 			}
 
-			l2_dir_offset = ish_dir.pl2_location;
 			if (amdfw_psp_dir_size(fw, l2_dir_offset, PSPL2_COOKIE, &dir_size) == 0)
 				printf("    %sPSPL2: Dir  [0x%08x-0x%08x)\n", indent, l2_dir_offset, l2_dir_offset + dir_size);
 			else
 				printf("    %sPSPL2: Dir  @0x%08x\n", indent, l2_dir_offset);
-			amdfw_psp_dir_walk(fw, l2_dir_offset, PSPL2_COOKIE, level + 2);
+			amdfw_psp_dir_walk(fw, l2_dir_offset, PSPL2_COOKIE, level + 3);
+			do_indentation_string(indent, level);
 			break;
 
 		case AMD_FW_BIOS_TABLE:
