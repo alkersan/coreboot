@@ -202,6 +202,7 @@ amd_fw_entry amd_psp_fw_table[] = {
 	{ .type = AMD_FW_USB_PHY, .level = PSP_LVL2 | PSP_LVL2_AB },
 	{ .type = AMD_FW_TOS_SEC_POLICY, .level = PSP_BOTH | PSP_LVL2_AB },
 	{ .type = AMD_FW_DRTM_TA, .level = PSP_LVL2 | PSP_LVL2_AB },
+	{ .type = AMD_FW_BIOS_TABLE, .level = PSP_LVL2_AB },
 	{ .type = AMD_FW_KEYDB_BL, .level = PSP_BOTH | PSP_LVL2_AB },
 	{ .type = AMD_FW_KEYDB_TOS, .level = PSP_LVL2 | PSP_LVL2_AB },
 	{ .type = AMD_FW_PSP_VERSTAGE, .level = PSP_BOTH | PSP_LVL2_AB },
@@ -1105,6 +1106,17 @@ static void integrate_psp_firmwares(context *ctx,
 
 			pspdir->entries[count].address_mode =
 				SET_ADDR_MODE(pspdir, AMD_ADDR_REL_BIOS);
+
+			count++;
+		} else if (fw_table[i].type == AMD_FW_BIOS_TABLE) {
+			/* Updated after BHD table was written */
+			pspdir->entries[count].type = fw_table[i].type;
+			pspdir->entries[count].subprog = 0;
+			pspdir->entries[count].rsvd = 0;
+			pspdir->entries[count].size = 0;
+			pspdir->entries[count].addr = 0;
+			pspdir->entries[count].writable = 0;
+			pspdir->entries[count].address_mode = 0;
 
 			count++;
 		} else if (fw_table[i].filename != NULL) {
