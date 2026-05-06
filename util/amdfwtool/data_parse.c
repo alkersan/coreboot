@@ -163,9 +163,6 @@ static uint8_t find_register_fw_filename_psp_dir(char *fw_name, char *filename,
 	} else if (strcmp(fw_name, "SMUSCS_FILE") == 0) {
 		fw_type = AMD_FW_PSP_SMUSCS;
 		subprog = 0;
-	} else if (strcmp(fw_name, "PSPTRUSTLETS_FILE") == 0) {
-		fw_type = AMD_FW_PSP_TRUSTLETS;
-		subprog = 0;
 	} else if (strcmp(fw_name, "PSPSECUREDEBUG_FILE") == 0) {
 		fw_type = AMD_FW_PSP_SECURED_DEBUG;
 		subprog = 0;
