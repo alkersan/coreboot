@@ -12,11 +12,6 @@ config BOARD_AMD_MAPLE_COMMON
 	select SOC_AMD_COMMON_BLOCK_SIMNOW_SUPPORTED
 	select SPI_FLASH_EXIT_4_BYTE_ADDR_MODE
 
-
-config BOARD_AMD_MAPLE_PHOENIX
-	select BOARD_AMD_MAPLE_COMMON
-	select SOC_AMD_PHOENIX_FSP
-
 config BOARD_AMD_MAPLE_STRIX_HALO
 	select BOARD_AMD_MAPLE_COMMON
 	select SOC_AMD_STRIX_HALO
@@ -24,19 +19,16 @@ config BOARD_AMD_MAPLE_STRIX_HALO
 if BOARD_AMD_MAPLE_COMMON
 
 config FMDFILE
-	default "src/mainboard/amd/maple/board_phoenix.fmd" if BOARD_AMD_MAPLE_PHOENIX
-	default "src/mainboard/amd/maple/board_strix_halo.fmd" if BOARD_AMD_MAPLE_STRIX_HALO
+	default "src/mainboard/amd/maple/board.fmd"
 
 config MAINBOARD_DIR
-	default "amd/maple" if BOARD_AMD_MAPLE_PHOENIX || BOARD_AMD_MAPLE_STRIX_HALO
+	default "amd/maple"
 
 config MAINBOARD_PART_NUMBER
-	default "Maple_Phoenix" if BOARD_AMD_MAPLE_PHOENIX
-	default "Maple_StrixHalo"  if BOARD_AMD_MAPLE_STRIX_HALO
+	default "Maple_StrixHalo"
 
 config DEVICETREE
-	default "devicetree_phoenix.cb" if BOARD_AMD_MAPLE_PHOENIX
-	default "devicetree_strix_halo.cb"  if BOARD_AMD_MAPLE_STRIX_HALO
+	default "devicetree.cb"
 
 config MAPLE_HAVE_MCHP_FW
 	bool "Have Microchip EC firmware?"

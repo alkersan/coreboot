@@ -6,12 +6,10 @@ bootblock-y += bootblock.c
 bootblock-y += early_gpio.c
 bootblock-y += ec.c
 
-romstage-$(CONFIG_BOARD_AMD_MAPLE_PHOENIX) += port_descriptors_phoenix.c
-romstage-$(CONFIG_BOARD_AMD_MAPLE_STRIX_HALO) += port_descriptors_strix_halo.c
+romstage-y += port_descriptors.c
 
 ramstage-y += gpio.c
-ramstage-$(CONFIG_BOARD_AMD_MAPLE_PHOENIX) += port_descriptors_phoenix.c
-ramstage-$(CONFIG_BOARD_AMD_MAPLE_STRIX_HALO) += port_descriptors_strix_halo.c
+ramstage-y += port_descriptors.c
 
 ifneq ($(wildcard $(MAINBOARD_BLOBS_DIR)/APCB_FP8_LPDDR5.bin),)
 APCB_SOURCES = $(MAINBOARD_BLOBS_DIR)/APCB_FP8_LPDDR5.bin
