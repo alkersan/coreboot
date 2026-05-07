@@ -1,3 +1,31 @@
+# CBI UFSC fields
+fw_config
+	field AUDIO_CODEC 0 2
+		option AUDIO_CODEC_UNKNOWN	0
+	end
+	field STORAGE_TYPE 12 14
+		option STORAGE_TYPE_UNKNOWN	0
+	end
+	field SENSOR_HUB 23 23
+		option ISH_ABSENT	0
+	end
+	field FINGERPRINT_INTERFACE 24 25
+		option FINGERPRINT_INTERFACE_UNKNOWN	0
+	end
+	field WIFI_INTERFACE 26 27
+		option WIFI_INTERFACE_UNKNOWN	0
+	end
+	field FORM_FACTOR 30 31
+		option FORM_FACTOR_UNKNOWN	0
+	end
+	field KB_BACKLIGHT 43 43
+		option KB_BACKLIGHT_ABSENT	0
+	end
+	field KEYBOARD_LAYOUT 45 47
+		option KEYBOARD_LAYOUT_DEFAULT	0
+	end
+end
+
 # SPDX-License-Identifier: GPL-2.0-or-later
 chip soc/intel/pantherlake
 
