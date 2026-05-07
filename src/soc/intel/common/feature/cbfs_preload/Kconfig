@@ -1,0 +1,10 @@
+## SPDX-License-Identifier: GPL-2.0-only
+
+config SOC_INTEL_COMMON_FEATURE_CBFS_PRELOAD
+	bool
+	help
+	  Include common CBFS preloading implementation for Intel SoCs. This
+	  driver consolidates the nearly identical CBFS preloading logic across
+	  multiple Intel platform generations. It preloads FSP-S, the payload,
+	  and DSDT prior to device enumeration, taking chipset lockdown mode
+	  into account.
