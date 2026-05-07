@@ -3,7 +3,7 @@
 #ifndef _SOC_PANTHERLAKE_GPIO_SOC_DEFS_H_
 #define _SOC_PANTHERLAKE_GPIO_SOC_DEFS_H_
 
-#define INC(x) ((x) + 1)
+#include <intelblocks/gpio_macros.h>
 
 /*
  * Most of the fixed numbers and macros are based on the GPP groups.
