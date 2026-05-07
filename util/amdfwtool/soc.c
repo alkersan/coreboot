@@ -235,6 +235,14 @@ bool platform_is_initial_alignment_required(enum platform platform_type)
 /**
  * Check if the platform is second generation EFS structure.
  *
+ * First generation platforms support at most 16MiB of flash. They typically
+ * use x86 MMIO addresses as the whole flash is mapped into the MMIO space.
+ *
+ * Second generation platforms support more than 16MiB of flash and thus the
+ * PSP searches every 16MiB page for an EFS that offset 0x24 BIT0 cleared.
+ * On those platforms, the address in the directory is a relative offset to
+ * the flash start.
+ *
  * @param platform_type: Platform enum to check
  * @return: true if second generation, false for first generation
  */

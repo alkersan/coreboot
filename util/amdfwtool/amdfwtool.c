@@ -951,6 +951,11 @@ static void integrate_psp_levels(context *ctx,
 				use_only_a ? AMD_FW_RECOVERYAB_A : AMD_FW_RECOVERYAB_B,
 				cb_config->soc_id);
 
+		/*
+		 * The PSP L1(B) can only be used on ISH platforms. On those platforms, there
+		 * are no files present in PSP L1(A) directory, thus it's sufficient to only
+		 * copy the header.
+		 */
 		if (ctx->pspdir_bak != NULL)
 			copy_psp_header(ctx->pspdir_bak, ctx->pspdir);
 	} else if (pspdir2 != NULL) {
