@@ -20,7 +20,6 @@ romstage-y += pcie_rp.c
 romstage-y += tdp.c
 
 ramstage-y += acpi.c
-ramstage-y += cbfs_preload.c
 ramstage-y += chip.c
 ramstage-y += cpu.c
 ramstage-$(CONFIG_SOC_INTEL_CRASHLOG) += crashlog.c
