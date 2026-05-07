@@ -1,0 +1,19 @@
+## SPDX-License-Identifier: GPL-2.0-only
+
+config SOC_INTEL_COMMON_FEATURE_ELOG
+	bool
+	help
+	  Include common PCH elog implementation for modern Intel client SoCs.
+	  This consolidates the nearly identical elog.c across multiple Intel
+	  platform generations. Platform-specific differences are handled via
+	  sub-options below.
+
+if SOC_INTEL_COMMON_FEATURE_ELOG
+
+config SOC_INTEL_COMMON_FEATURE_ELOG_SMBUS_WAKE
+	bool
+	help
+	  Enable SMBUS wake source logging. Select this if the platform's
+	  PCH includes an SMBUS controller that can generate a wake event.
+
+endif
