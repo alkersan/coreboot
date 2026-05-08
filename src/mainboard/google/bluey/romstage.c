@@ -44,9 +44,11 @@ static enum boot_mode_t set_boot_mode(void)
 
 	enum boot_mode_t boot_mode_new;
 
-	if (google_chromeec_is_rtc_event()) {
+	if (!battery_present) {
+		boot_mode_new = LB_BOOT_MODE_NO_BATTERY;
+	} else if (google_chromeec_is_rtc_event()) {
 		boot_mode_new = LB_BOOT_MODE_RTC_WAKE;
-	} else if (is_off_mode() && battery_present) {
+	} else if (is_off_mode()) {
 		boot_mode_new = LB_BOOT_MODE_OFFMODE_CHARGING;
 	} else if (battery_below_threshold) {
 		if (google_chromeec_is_charger_present())
@@ -211,7 +213,7 @@ static void late_setup_usb_typec(void)
 static void mainboard_setup_peripherals_late(int mode)
 {
 	/* Perform PCIe setup early in async mode if supported to save 100ms */
-	if (mode == LB_BOOT_MODE_NORMAL)
+	if (mode == LB_BOOT_MODE_NORMAL || mode == LB_BOOT_MODE_NO_BATTERY)
 		qcom_setup_pcie_host(NULL);
 	else
 		gcom_pcie_power_off_ep();
@@ -222,7 +224,7 @@ static void mainboard_setup_peripherals_late(int mode)
 	 * Requires >=200ms delay after its pin was driven low in bootblock.
 	 */
 	if (CONFIG(MAINBOARD_HAS_FINGERPRINT_VIA_SPI)) {
-		if (mode == LB_BOOT_MODE_NORMAL)
+		if (mode == LB_BOOT_MODE_NORMAL || mode == LB_BOOT_MODE_NO_BATTERY)
 			gpio_output(GPIO_EN_FP_RAILS, 1);
 	}
 }

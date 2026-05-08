@@ -300,7 +300,9 @@ void mainboard_soc_init(void)
 	/* Setup USB related initial config */
 	setup_usb();
 
-	if (get_boot_mode() == LB_BOOT_MODE_NORMAL)
+	enum boot_mode_t boot_mode = get_boot_mode();
+
+	if (boot_mode == LB_BOOT_MODE_NORMAL || boot_mode == LB_BOOT_MODE_NO_BATTERY)
 		display_startup();
 
 	/* Enable touchpad power */
