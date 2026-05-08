@@ -185,7 +185,7 @@ int backup_boot_device_sync_subregion(const struct region *sub,
 		offset += chunk;
 	} while (remaining);
 
-	printk(BIOS_INFO, "%s: Synced %ld bytes from SPI flash %s->%s\n", __func__,
+	printk(BIOS_INFO, "%s: Synced %zu bytes from SPI flash %s->%s\n", __func__,
 	       written, direction_prim_to_sec ? "PRIM" : "SEC",
 	       direction_prim_to_sec ? "SEC" : "PRIM");
 	return 0;
