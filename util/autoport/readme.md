@@ -374,10 +374,11 @@ improves. If you really care about CMOS options:
 
 ## EC (lenovo)
 
-You need to set `has_keyboard_backlight` (backlit keyboard like X230),
-`has_power_management_beeps` (optional beeps when e.g. plugging the cord
-in) and `has_uwb` (third MiniPCIe slot) in accordance to functions available
-on your machine
+You need to set `has_thinklight` (keyboard light like T420),
+`has_keyboard_backlight` (backlit keyboard like T440p),
+`has_power_management_beeps` (optional beeps when e.g. plugging the cord in)
+and `has_uwb` (third MiniPCIe slot) in accordance to functions available
+on your machine.
 
 In rare cases autoport is unable to detect GPE. You can detect it from
 dmesg or ACPI tables. Look for line in dmesg like

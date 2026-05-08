@@ -186,7 +186,7 @@ void mainboard_smi_sleep(u8 slp_typ)
 				},
 			},
 		},
-		Comment: "FIXME: has_keyboard_backlight, has_power_management_beeps, has_uwb",
+		Comment: "FIXME: has_thinklight, has_keyboard_backlight, has_power_management_beeps, has_uwb",
 		Registers: map[string]string{
 			"config0":   FormatHex8(ecs[0]),
 			"config1":   FormatHex8(ecs[1]),
