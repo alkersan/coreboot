@@ -14,6 +14,7 @@ fw_config
 	end
 	field WIFI_INTERFACE 26 27
 		option WIFI_INTERFACE_UNKNOWN	0
+		option WIFI_INTERFACE_PCIE	1
 	end
 	field FORM_FACTOR 30 31
 		option FORM_FACTOR_UNKNOWN	0
