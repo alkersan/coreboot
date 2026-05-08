@@ -466,6 +466,8 @@ enum boot_mode_t {
 	CB_BOOT_MODE_OFFMODE_CHARGING,
 	/* Device is booting in due to RTC alarm */
 	CB_BOOT_MODE_RTC_WAKE,
+	/* Device is booting in "no-battery" */
+	CB_BOOT_MODE_NO_BATTERY,
 };
 
 /*
