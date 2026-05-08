@@ -17,6 +17,12 @@ uint32_t board_id(void)
 		[0] = GPIO(135)
 	};
 
+	if (CONFIG(EC_GOOGLE_CHROMEEC)) {
+		if (google_chromeec_get_board_version(&id))
+			id = BOARD_ID_UNKNOWN;
+		return id;
+	}
+
 	id = gpio_base3_value(pins, ARRAY_SIZE(pins));
 
 	return id;
