@@ -165,6 +165,9 @@ static enum cb_err pll_init_and_set(struct calypso_ncc0_clock *ncc0, u32 l_val)
 
 	ncc0_pll_cfg.reg_alpha = &ncc0->pll0_alpha;
 	ncc0_pll_cfg.alpha_val = 0x00;
+	ncc0_pll_cfg.reg_user_ctl = &ncc0->pll0_user_ctl;
+	ncc0_pll_cfg.user_ctl_val = (1 << PLL_PLLOUT_EVEN_SHFT |
+			1 << PLL_PLLOUT_MAIN_SHFT);
 
 	if (clock_configure_enable_gpll(&ncc0_pll_cfg, false, 0) != CB_SUCCESS)
 		return CB_ERR;
