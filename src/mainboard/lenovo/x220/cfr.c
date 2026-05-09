@@ -38,7 +38,6 @@ static struct sm_obj_form ec = {
 		&battery_beep,
 		&fn_ctrl_swap,
 		&sticky_fn,
-		&f1_to_f12_as_primary,
 		&touchpad,
 		&trackpoint,
 		NULL
