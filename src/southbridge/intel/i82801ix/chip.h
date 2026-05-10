@@ -56,6 +56,7 @@ struct southbridge_intel_i82801ix_config {
 
 	/* IDE configuration */
 	uint8_t sata_port_map : 6;
+	uint8_t sata_hotplug_map : 6;
 	bool sata_clock_request;
 	bool sata_traffic_monitor;
 

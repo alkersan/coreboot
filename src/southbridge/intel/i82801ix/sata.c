@@ -15,7 +15,7 @@
 
 typedef struct southbridge_intel_i82801ix_config config_t;
 
-static void sata_enable_ahci_mmap(struct device *const dev, const u8 port_map,
+static void sata_enable_ahci_mmap(struct device *const dev, const config_t *config,
 				  const int is_mobile)
 {
 	int i;
@@ -44,7 +44,7 @@ static void sata_enable_ahci_mmap(struct device *const dev, const u8 port_map,
 	write32(abar + 0x00, reg32);
 
 	/* PI (Ports implemented) */
-	write32(abar + 0x0c, port_map);
+	write32(abar + 0x0c, config->sata_port_map);
 	/* PCH code reads back twice, do we need it, too? */
 	(void)read32(abar + 0x0c); /* Read back 1 */
 	(void)read32(abar + 0x0c); /* Read back 2 */
@@ -59,7 +59,10 @@ static void sata_enable_ahci_mmap(struct device *const dev, const u8 port_map,
 		if (((i == 2) || (i == 3)) && is_mobile)
 			continue;
 		u8 *addr = abar + 0x118 + (i * 0x80);
-		write32(addr, read32(addr));
+		reg32 = read32(addr);
+		if (config->sata_hotplug_map & (1 << i))
+			reg32 |= 1 << 18;
+		write32(addr, reg32);
 	}
 }
 
@@ -212,7 +215,7 @@ static void sata_init(struct device *const dev)
 	}
 
 	if (sata_mode == 0)
-		sata_enable_ahci_mmap(dev, config->sata_port_map, is_mobile);
+		sata_enable_ahci_mmap(dev, config, is_mobile);
 
 	sata_program_indexed(dev, is_mobile);
 }
