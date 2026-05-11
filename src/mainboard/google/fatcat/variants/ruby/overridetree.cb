@@ -189,7 +189,94 @@ chip soc/intel/pantherlake
 			    device generic 0 on end
 			end
 		end
+		device ref dtt on
+			chip drivers/intel/dptf
+				## sensor information
+				register "options.tsr[0].desc" = ""DDR_SOC""
+				register "options.tsr[1].desc" = ""Charger""
+				register "options.tsr[2].desc" = ""5V choke""
 
+				## Active Policy
+				# FIXME: below values are initial reference values only
+				register "policies.active" = "{
+						[0] = {
+							.target = DPTF_TEMP_SENSOR_0,
+							.thresholds = {
+									TEMP_PCT(75, 88),
+									TEMP_PCT(70, 78),
+									TEMP_PCT(65, 68),
+									TEMP_PCT(60, 58),
+
+								}
+							},
+						[1] = {
+							.target = DPTF_TEMP_SENSOR_1,
+							.thresholds = {
+									TEMP_PCT(80, 88),
+									TEMP_PCT(75, 78),
+									TEMP_PCT(70, 68),
+									TEMP_PCT(65, 58),
+
+								}
+							},
+						[2] = {
+							.target = DPTF_TEMP_SENSOR_2,
+							.thresholds = {
+									TEMP_PCT(75, 88),
+									TEMP_PCT(70, 78),
+									TEMP_PCT(65, 68),
+									TEMP_PCT(60, 58),
+								}
+							}
+				}"
+
+				## Passive Policy
+				# TODO: below values are initial reference values only
+				register "policies.passive" = "{
+						[0] = DPTF_PASSIVE(CPU,         CPU,           95, 5000),
+						[1] = DPTF_PASSIVE(CPU,         TEMP_SENSOR_0, 85, 5000),
+						[2] = DPTF_PASSIVE(CPU,         TEMP_SENSOR_1, 85, 5000),
+						[3] = DPTF_PASSIVE(CHARGER,     TEMP_SENSOR_2, 80, 5000),
+				}"
+
+				## Critical Policy
+				# TODO: below values are initial reference values only
+				register "policies.critical" = "{
+						[0] = DPTF_CRITICAL(CPU,          100, SHUTDOWN),
+						[1] = DPTF_CRITICAL(TEMP_SENSOR_0, 90, SHUTDOWN),
+						[2] = DPTF_CRITICAL(TEMP_SENSOR_1, 90, SHUTDOWN),
+						[3] = DPTF_CRITICAL(TEMP_SENSOR_2, 85, SHUTDOWN),
+				}"
+
+				## Power Limits Control
+				register "controls.power_limits" = "{
+						.pl1 = {
+							.min_power = 12000,
+							.max_power = 15000,
+							.time_window_min = 28 * MSECS_PER_SEC,
+							.time_window_max = 32 * MSECS_PER_SEC,
+							.granularity = 200,
+						},
+						.pl2 = {
+							.min_power = 35000,
+							.max_power = 35000,
+							.time_window_min = 28 * MSECS_PER_SEC,
+							.time_window_max = 32 * MSECS_PER_SEC,
+							.granularity = 1000,
+						}
+				}"
+
+				## Charger Performance Control (Control, mA)
+				register "controls.charger_perf" = "{
+						[0] = { 255, 3000 },
+						[1] = {  24, 1500 },
+						[2] = {  16, 1000 },
+						[3] = {   8,  500 }
+				}"
+
+				device generic 0 alias dptf_policy on end
+			end
+		end
 		device ref iaa off end
 		device ref tbt_pcie_rp0 on end
 		device ref tbt_pcie_rp1 on end
