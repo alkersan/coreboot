@@ -5,6 +5,9 @@
 #include <cbmem.h>
 #include <commonlib/coreboot_tables.h>
 #include <ec/google/chromeec/ec.h>
+#include <soc/aop_common.h>
+#include <soc/qclib_common.h>
+#include <soc/shrm.h>
 
 static enum boot_mode_t boot_mode = LB_BOOT_MODE_NORMAL;
 
@@ -105,14 +108,21 @@ void platform_romstage_main(void)
 			printk(BIOS_WARNING, "Failed to get battery level\n");
 	}
 
-	/* Placeholder for Qclib 1st entry */
+	if (!qclib_check_dload_mode())
+        shrm_fw_load_reset();
+
+	/* QCLib: DDR init & train */
+	qclib_load_and_run();
 
 	/* Underlying PMIC registers are accessible only at this point */
 	set_boot_mode();
 
+	if (!qclib_check_dload_mode())
+		aop_fw_load_reset();
+
 	mainboard_setup_peripherals_late(boot_mode);
 
-	/* Placeholder for Qclib 2nd entry */
+	qclib_rerun();
 }
 
 void platform_romstage_postram(void)
