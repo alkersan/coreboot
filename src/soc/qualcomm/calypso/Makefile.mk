@@ -121,6 +121,14 @@ $(DCB_CBFS)-compression := $(CBFS_COMPRESS_FLAG)
 cbfs-files-y += $(DCB_CBFS)
 
 ################################################################################
+DELTA_DCB_FILE := $(CALYPSO_BLOB)/boot/$(DTB_DCB_BLOB_PATH)/delta_dcb.bin
+DELTA_DCB_CBFS := $(CONFIG_CBFS_PREFIX)/delta_dcb
+$(DELTA_DCB_CBFS)-file := $(DELTA_DCB_FILE)
+$(DELTA_DCB_CBFS)-type := raw
+$(DELTA_DCB_CBFS)-compression := $(CBFS_COMPRESS_FLAG)
+cbfs-files-y += $(DELTA_DCB_CBFS)
+
+################################################################################
 DTB_FILE := $(CALYPSO_BLOB)/boot/$(DTB_DCB_BLOB_PATH)/pre-ddr.dtb
 DTB_CBFS := $(CONFIG_CBFS_PREFIX)/dtb
 $(DTB_CBFS)-file := $(DTB_FILE)
