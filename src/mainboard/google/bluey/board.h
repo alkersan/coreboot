@@ -75,7 +75,7 @@
 #define BACKLIGHT_PWM_PMIC_GPIO 5
 #define BACKLIGHT_PWM_PMIC_ID PMIC_A_SLAVE_ID
 
-#define SLOW_CHARGING_BATTERY_THRESHOLD 1
+#define REMAINING_BATTERY_THRESHOLD_FOR_SLOW_CHARGING 100 /* 100mAh */
 
 void setup_chromeos_gpios(void);
 bool is_off_mode(void);

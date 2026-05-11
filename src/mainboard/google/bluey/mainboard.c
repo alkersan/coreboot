@@ -172,6 +172,27 @@ static void trigger_critical_battery_shutdown(void)
 	google_chromeec_ap_poweroff();
 }
 
+static bool board_should_use_slow_charging(void)
+{
+	uint32_t capacity;
+
+	if (!CONFIG(EC_GOOGLE_CHROMEEC))
+		return false;
+
+	if (google_chromeec_read_batt_remaining_capacity(&capacity) < 0) {
+		printk(BIOS_WARNING, "Failed to get battery capacity; defaulting to slow charging\n");
+		return true;
+	}
+
+	/*
+	 * If the remaining battery capacity is less than or equal to the
+	 * threshold, use slow charging to ensure system stability.
+	 *
+	 * FIXME: b/497622018
+	 */
+	return capacity <= REMAINING_BATTERY_THRESHOLD_FOR_SLOW_CHARGING;
+}
+
 /*
  * Handle charging and UI states for low-power or off-mode boot scenarios.
  * This function handles the transitions needed when the device is powered
@@ -182,19 +203,7 @@ static void handle_low_power_charging_boot(void)
 	if (!pll_init_and_set(apss_ncc0, L_VAL_710P4MHz))
 		printk(BIOS_DEBUG, "CPU Frequency set to 710MHz\n");
 
-	uint32_t batt_pct;
-	if (!platform_get_battery_soc_information(&batt_pct)) {
-		printk(BIOS_WARNING, "Failed to get battery level\n");
-		return;
-	}
-
-	/*
-	 * Use slow charging if battery is less than 2% to ensure stability
-	 * otherwise, enable fast charging.
-	 *
-	 * FIXME: b/497622018
-	 */
-	if (batt_pct <= SLOW_CHARGING_BATTERY_THRESHOLD)
+	if (board_should_use_slow_charging())
 		enable_slow_battery_charging();
 	else
 		enable_fast_battery_charging();

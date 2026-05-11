@@ -60,7 +60,7 @@
 
 #define DELAY_CHARGING_APPLET_MS 2000 /* 2sec */
 #define CHARGING_RAIL_STABILIZATION_DELAY_MS 5000 /* 5sec */
-#define LOW_BATTERY_CHARGING_LOOP_EXIT_MS (5 * 60 * 1000) /* 5min */
+#define LOW_BATTERY_CHARGING_LOOP_EXIT_MS (3 * 60 * 1000) /* 3min */
 #define DELAY_CHARGING_ACTIVE_LB_MS 4000 /* 4sec */
 
 enum charging_status {
@@ -206,19 +206,20 @@ void launch_charger_applet(void)
 	printk(BIOS_INFO, "Charging ready after %lld ms\n", stopwatch_duration_msecs(&sw));
 
 	static const long low_battery_charging_timeout_ms = LOW_BATTERY_CHARGING_LOOP_EXIT_MS;
-	uint32_t batt_pct;
-	if (!platform_get_battery_soc_information(&batt_pct)) {
-		printk(BIOS_WARNING, "Failed to get battery level\n");
+	uint32_t capacity;
+	if (google_chromeec_read_batt_remaining_capacity(&capacity) < 0) {
+		printk(BIOS_WARNING, "Failed to get battery capacity\n");
 		return;
 	}
 	/*
-	 * If the battery is less than SLOW_CHARGING_BATTERY_THRESHOLD threshold, enter low-battery
+	 * If the remaining battery is less than
+	 * REMAINING_BATTERY_THRESHOLD_FOR_SLOW_CHARGING threshold, enter low-battery
 	 * charging mode and start a timeout timer to prevent getting stuck in a dead-loop
 	 * if the battery fails to charge.
 	 *
 	 * FIXME: b/497622018
 	 */
-	if (batt_pct <= SLOW_CHARGING_BATTERY_THRESHOLD) {
+	if (capacity <= REMAINING_BATTERY_THRESHOLD_FOR_SLOW_CHARGING) {
 		has_entered_low_battery_mode = true;
 		stopwatch_init_msecs_expire(&sw, low_battery_charging_timeout_ms);
 	}
