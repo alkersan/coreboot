@@ -1972,6 +1972,32 @@ int google_chromeec_read_batt_state_of_charge(uint32_t *state)
 }
 
 /*
+ * Reads remaining battery capacity.
+ * capacity: Pointer to store the remaining capacity in mAh.
+ *
+ * Return: 0 on success, -1 on failure.
+ */
+int google_chromeec_read_batt_remaining_capacity(uint32_t *capacity)
+{
+	struct ec_params_battery_dynamic_info params = {
+		.index = 0,
+	};
+	struct ec_response_battery_dynamic_info resp;
+
+	/* Send command to Chrome EC to query dynamic battery parameters */
+	if (ec_cmd_battery_get_dynamic(PLAT_EC, &params, &resp) != 0)
+		return -1;
+
+	/* Sanity check: Ensure remaining capacity is non-negative and valid */
+	if (resp.remaining_capacity < 0)
+		return -1;
+
+	*capacity = (uint32_t)resp.remaining_capacity;
+
+	return 0;
+}
+
+/*
  * Set the RGB color of a specific LED on the Lightbar.
  *
  * This function communicates with the Embedded Controller (EC)

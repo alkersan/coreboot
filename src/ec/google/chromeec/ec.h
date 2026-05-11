@@ -557,6 +557,14 @@ void chipset_ioport_range(uint16_t *base, size_t *size);
 int google_chromeec_read_batt_state_of_charge(uint32_t *state);
 
 /*
+ * Reads remaining battery capacity.
+ * capacity: Pointer to store the remaining capacity in mAh.
+ *
+ * Return: 0 on success, -1 on failure.
+ */
+int google_chromeec_read_batt_remaining_capacity(uint32_t *capacity);
+
+/*
  * Set the RGB color of a specific LED on the Lightbar.
  *
  * This function communicates with the Embedded Controller (EC)
