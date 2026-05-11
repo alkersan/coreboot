@@ -76,12 +76,13 @@ void mainboard_get_pcie_pm_options(const struct pcie_rp_config *rp_cfg,
 }
 
 #if CONFIG(BOARD_STARLABS_STARFIGHTER_MTL)
-static const struct sm_object legacy_speaker_control = SM_DECLARE_BOOL({
-	.opt_name	= "legacy_speaker_control",
-	.ui_name	= "Legacy Speaker Control",
-	.ui_helptext	= "Enabled: keep the default speaker initialization.\n"
-			  "Disabled: boot with GPIO2 low and LINE2 EAPD off "
-			  "so the speakers start muted.",
+static const struct sm_object firmware_enable_amp = SM_DECLARE_BOOL({
+	.opt_name	= "firmware_enable_amp",
+	.ui_name	= "Firmware Enables AMP",
+	.ui_helptext	= "Enabled: assert LINE2 EAPD and drive GPIO2 high "
+			  "during HDA initialization.\n"
+			  "Disabled: leave the speaker amp off for OS runtime "
+			  "sequencing.",
 	.default_value	= true,
 });
 #endif
@@ -91,7 +92,7 @@ static struct sm_obj_form audio_group = {
 	.obj_list = (const struct sm_object *[]) {
 		&hda_dsp,
 		#if CONFIG(BOARD_STARLABS_STARFIGHTER_MTL)
-		&legacy_speaker_control,
+		&firmware_enable_amp,
 		#endif
 		NULL
 	},
