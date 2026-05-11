@@ -19,6 +19,7 @@
 #define QCLIB_TE_DDR_INFORMATION   "ddr_information"
 #define QCLIB_TE_QCLIB_LOG_BUFFER  "qclib_log_buffer"
 #define QCLIB_TE_DCB_SETTINGS      "dcb_settings"
+#define QCLIB_TE_DELTA_DCB_SETTINGS "delta_dcb_settings"
 #define QCLIB_TE_CDT_SETTINGS      "cdt_settings"
 #define QCLIB_TE_PMIC_SETTINGS     "pmic_settings"
 #define QCLIB_TE_DDR_TRAINING_DATA "ddr_training_data"
@@ -41,6 +42,7 @@ enum qclib_cbfs_file {
 	QCLIB_CBFS_QCSDI,
 	QCLIB_CBFS_QCLIB,
 	QCLIB_CBFS_DCB,
+	QCLIB_CBFS_DELTA_DCB,
 	QCLIB_CBFS_DTB,
 	QCLIB_CBFS_CPR,
 	QCLIB_CBFS_SHRM_META,

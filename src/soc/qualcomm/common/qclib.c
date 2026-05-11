@@ -166,6 +166,8 @@ const char *qclib_file_default(enum qclib_cbfs_file file)
 		return CONFIG_CBFS_PREFIX "/qclib";
 	case QCLIB_CBFS_DCB:
 		return CONFIG_CBFS_PREFIX "/dcb";
+	case QCLIB_CBFS_DELTA_DCB:
+		return CONFIG_CBFS_PREFIX "/delta_dcb";
 	case QCLIB_CBFS_DTB:
 		return CONFIG_CBFS_PREFIX "/dtb";
 	case QCLIB_CBFS_CPR:
@@ -403,6 +405,17 @@ void qclib_load_and_run(void)
 		goto fail;
 	}
 	qclib_add_if_table_entry(QCLIB_TE_DCB_SETTINGS, _dcb, data_size, 0);
+
+	if (_delta_dcb) {
+		/* Attempt to load DELTA_DCB Blob */
+		data_size = cbfs_load(qclib_file(QCLIB_CBFS_DELTA_DCB),
+				_delta_dcb, REGION_SIZE(delta_dcb));
+		if (!data_size) {
+			printk(BIOS_ERR, "[%s] /delta_dcb failed\n", __func__);
+			goto fail;
+		}
+		qclib_add_if_table_entry(QCLIB_TE_DELTA_DCB_SETTINGS, _delta_dcb, data_size, 0);
+	}
 
 	if (CONFIG(QC_SDI_ENABLE) && (!CONFIG(VBOOT) ||
 		!vboot_is_gbb_flag_set(VB2_GBB_FLAG_RUNNING_FAFT))) {
