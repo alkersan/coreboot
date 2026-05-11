@@ -698,6 +698,12 @@ static void fill_psp_bak_directory_to_efs(embedded_firmware *amd_romsig, void *p
 static void fill_bios_directory_to_efs(embedded_firmware *amd_romsig, void *biosdir,
 	context *ctx, amd_cb_config *cb_config)
 {
+	/*
+	 * On ISH enabled platforms BIOS directory is always pointed to by PSP L2.
+	 */
+	if (platform_needs_ish(cb_config->soc_id))
+		return;
+
 	switch (cb_config->soc_id) {
 	case PLATFORM_RENOIR:
 	case PLATFORM_LUCIENNE:
@@ -706,12 +712,6 @@ static void fill_bios_directory_to_efs(embedded_firmware *amd_romsig, void *bios
 		if (!cb_config->recovery_ab)
 			amd_romsig->bios3_entry =
 				BUFF_TO_RUN_MODE(*ctx, biosdir, AMD_ADDR_REL_BIOS);
-		break;
-	case PLATFORM_MENDOCINO:
-	case PLATFORM_PHOENIX:
-	case PLATFORM_STRIX:
-	case PLATFORM_KRACKAN2E:
-	case PLATFORM_STRIXHALO:
 		break;
 	case PLATFORM_CARRIZO:
 	case PLATFORM_STONEYRIDGE:
