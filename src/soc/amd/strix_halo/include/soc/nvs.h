@@ -1,7 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-/* TODO: Update for Strix Halo */
-
 /*
  * NOTE: The layout of the global_nvs structure below must match the layout
  * in soc/soc/amd/strix_halo/acpi/globalnvs.asl !!!

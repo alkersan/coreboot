@@ -1,7 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 
-/* TODO: Update for Strix Halo */
-
 #include <stdint.h>
 #include <amdblocks/acpimmio.h>
 #include <amdblocks/aoac.h>

@@ -1,5 +1,4 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
-/* TODO: Update for Strix Halo */
 
 /*
  * NOTE: The layout of the GNVS structure below must match the layout in
