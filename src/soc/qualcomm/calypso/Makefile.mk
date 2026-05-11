@@ -30,6 +30,7 @@ romstage-y += cbmem.c
 romstage-y += ../common/shrm_load_reset.c
 romstage-y += cpucp_load_reset.c
 romstage-y += ../common/qclib.c
+romstage-y += qclib.c
 romstage-y += ../common/mmu.c
 romstage-y += ../common/watchdog.c
 romstage-y += mmu.c
@@ -110,7 +111,8 @@ $(objcbfs)/bootblock.bin: $(objcbfs)/bootblock.raw.elf
 QCLIB_CBFS := $(CONFIG_CBFS_PREFIX)/qclib
 $(QCLIB_CBFS)-file := $(QCLIB_FILE)
 $(QCLIB_CBFS)-type := stage
-$(QCLIB_CBFS)-compression := $(CBFS_PRERAM_COMPRESS_FLAG)
+# FIXME: b/511898023
+$(QCLIB_CBFS)-compression := none
 cbfs-files-y += $(QCLIB_CBFS)
 
 ################################################################################
