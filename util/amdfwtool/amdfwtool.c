@@ -1161,25 +1161,39 @@ static void add_psp_firmware_entry(context *ctx,
 	ctx->current_table = current_table_save;
 }
 
-static void *new_bios_dir(context *ctx, bool multi, uint32_t cookie)
+static void *new_bios_dir(context *ctx, const amd_cb_config *cb_config, const uint32_t cookie)
 {
-	void *ptr;
+	bios_directory_hdr *ptr;
 
 	/*
 	 * Force both onto boundary when multi.  Primary table is after
 	 * updatable table, so alignment ensures primary can stay intact
 	 * if secondary is reprogrammed.
 	 */
-	if (multi)
+	if (platform_is_multi_level(cb_config->soc_id))
 		adjust_current_pointer(ctx, 0, TABLE_ERASE_ALIGNMENT);
 	else
 		adjust_current_pointer(ctx, 0, TABLE_ALIGNMENT);
-	ptr = BUFF_CURRENT(*ctx);
-	((bios_directory_hdr *) ptr)->cookie = cookie;
-	((bios_directory_hdr *) ptr)->additional_info = 0;
-	((bios_directory_hdr *) ptr)->additional_info_fields.address_mode = ctx->address_mode;
-	((bios_directory_hdr *) ptr)->additional_info_fields.spi_block_size = 1;
-	((bios_directory_hdr *) ptr)->additional_info_fields.base_addr = 0;
+	ptr = (bios_directory_hdr *)BUFF_CURRENT(*ctx);
+
+	ptr->cookie = cookie;
+
+
+	if (platform_has_dir_header_v1(cb_config->soc_id)) {
+		ptr->additional_info_fields_v1.version = 1;
+		ptr->additional_info_fields_v1.dir_size = 0;
+		ptr->additional_info_fields_v1.spi_block_size = 0;
+		ptr->additional_info_fields_v1.dir_hdr_size = 0;
+		ptr->additional_info_fields_v1.address_mode = ctx->address_mode;
+		ptr->additional_info_fields_v1.reserved = 0;
+	} else {
+		ptr->additional_info_fields.version = 0;
+		ptr->additional_info_fields.dir_size = 0;
+		ptr->additional_info_fields.spi_block_size = 1;
+		ptr->additional_info_fields.address_mode = ctx->address_mode;
+		ptr->additional_info_fields.base_addr = 0;
+	}
+
 	adjust_current_pointer(ctx,
 		sizeof(bios_directory_hdr) + MAX_BIOS_ENTRIES * sizeof(bios_directory_entry),
 		1);
@@ -1312,7 +1326,7 @@ static void integrate_bios_firmwares(context *ctx,
 	uint32_t current_table_save;
 	bios_directory_table *biosdir;
 
-	biosdir = new_bios_dir(ctx, platform_is_multi_level(cb_config->soc_id), cookie);
+	biosdir = new_bios_dir(ctx, cb_config, cookie);
 
 	if (cookie == BHD_COOKIE)
 		ctx->biosdir = biosdir;
