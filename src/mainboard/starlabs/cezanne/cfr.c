@@ -100,7 +100,7 @@ static const struct sm_object pciexp_##_suffix##_l1ss = SM_DECLARE_ENUM({		\
 }, WITH_DEP_VALUES(&pciexp_##_suffix##_clk_pm, true),				\
 	WITH_CALLBACK(cezanne_update_pcie_l1ss))
 
-STARBOOK_CEZANNE_DECLARE_PCIE_PM_OBJECTS(wifi, "WiFi");
+STARBOOK_CEZANNE_DECLARE_PCIE_PM_OBJECTS(wifi, "Wi-Fi");
 STARBOOK_CEZANNE_DECLARE_PCIE_PM_OBJECTS(ssd, "SSD");
 STARBOOK_CEZANNE_DECLARE_PCIE_L1SS_OBJECT(ssd, "SSD");
 
@@ -117,8 +117,8 @@ static const struct sm_object bluetooth_rtd3 = SM_DECLARE_BOOL({
 
 static const struct sm_object wifi = SM_DECLARE_BOOL({
 	.opt_name	= "wifi",
-	.ui_name	= "WiFi",
-	.ui_helptext	= "Enable or disable the built-in WiFi",
+	.ui_name	= "Wi-Fi",
+	.ui_helptext	= "Enable or disable the built-in Wi-Fi",
 	.default_value	= true,
 });
 

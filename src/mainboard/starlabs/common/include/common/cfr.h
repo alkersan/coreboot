@@ -321,8 +321,8 @@ static const struct sm_object webcam = SM_DECLARE_BOOL({
 
 static const struct sm_object wifi = SM_DECLARE_BOOL({
 	.opt_name	= "wifi",
-	.ui_name	= "WiFi",
-	.ui_helptext	= "Enable or disable the built-in WiFi",
+	.ui_name	= "Wi-Fi",
+	.ui_helptext	= "Enable or disable the built-in Wi-Fi",
 	.default_value	= true,
 });
 
