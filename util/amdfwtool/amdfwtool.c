@@ -68,7 +68,7 @@
  *  +------------+---------------+----------------+------------+
  *  BDT Combo is similar
  */
-
+#include <assert.h>
 #include <commonlib/bsd/helpers.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -978,10 +978,10 @@ static void integrate_psp_levels(context *ctx,
 	ctx->current_table = current_table_save;
 }
 
-static void integrate_psp_firmwares(context *ctx,
-					amd_fw_entry *fw_table,
-					uint32_t cookie,
-					amd_cb_config *cb_config)
+static psp_directory_table *integrate_psp_firmwares(context *ctx,
+						    amd_fw_entry *fw_table,
+						    uint32_t cookie,
+						    amd_cb_config *cb_config)
 {
 	ssize_t bytes;
 	unsigned int i, count;
@@ -992,37 +992,11 @@ static void integrate_psp_firmwares(context *ctx,
 	uint32_t current_table_save;
 	bool recovery_ab = cb_config->recovery_ab;
 
-	/* This function can create a primary table, a secondary table, or a
-	 * flattened table which contains all applicable types.  These if-else
-	 * statements infer what the caller intended.  If a 2nd-level cookie
-	 * is passed, clearly a 2nd-level table is intended.  However, a
-	 * 1st-level cookie may indicate level 1 or flattened.
-	 */
+	assert(cookie == PSP_COOKIE || cookie == PSPL2_COOKIE);
+
 	current_table_save = ctx->current_table;
 
-	if (cookie == PSP_COOKIE) {
-		pspdir = new_psp_dir(ctx, cb_config, cookie);
-		ctx->pspdir = pspdir;
-		/* Only on ISH platforms a backup PSP L1B can be used. */
-		if (platform_needs_ish(cb_config->soc_id))
-			ctx->pspdir_bak = new_psp_dir(ctx, cb_config, cookie);
-		/* The ISH tables are with PSP L1. */
-		if (platform_needs_ish(cb_config->soc_id) && ctx->ish_a_dir == NULL)
-			ctx->ish_a_dir = new_ish_dir(ctx);
-		if (platform_needs_ish(cb_config->soc_id) && ctx->ish_b_dir == NULL)
-			ctx->ish_b_dir = new_ish_dir(ctx);
-	} else if (cookie == PSPL2_COOKIE) {
-		if (ctx->pspdir2 == NULL) {
-			pspdir = new_psp_dir(ctx, cb_config, cookie);
-			ctx->pspdir2 = pspdir;
-		} else if (ctx->pspdir2_b == NULL) {
-			pspdir = new_psp_dir(ctx, cb_config, cookie);
-			ctx->pspdir2_b = pspdir;
-		}
-	}
-	if (pspdir == NULL) {
-		goto out;
-	}
+	pspdir = new_psp_dir(ctx, cb_config, cookie);
 
 	if (!platform_is_multi_level(cb_config->soc_id))
 		level = PSP_BOTH;
@@ -1151,8 +1125,9 @@ static void integrate_psp_firmwares(context *ctx,
 	}
 
 	fill_dir_header(pspdir, count, ctx);
-out:
+
 	ctx->current_table = current_table_save;
+	return pspdir;
 }
 
 static void add_psp_firmware_entry(context *ctx,
@@ -1746,15 +1721,27 @@ int main(int argc, char **argv)
 	ctx.ish_b_dir = NULL;
 
 	if (platform_is_multi_level(cb_config.soc_id)) {
-		/* PSP L1 */
-		integrate_psp_firmwares(&ctx, amd_psp_fw_table, PSP_COOKIE, &cb_config);
+		/* PSP L1.
+		 * On multi-level platforms, the PSP L1 table contains mandatory files and
+		 * a pointer to the PSP L2 table. On ISH platforms the PSP L1 table only contains
+		 * pointers to PSP L2, but there are no files present.
+		 */
+		ctx.pspdir = integrate_psp_firmwares(&ctx, amd_psp_fw_table, PSP_COOKIE, &cb_config);
+
+		if (platform_needs_ish(cb_config.soc_id)) {
+			/* Only on ISH platforms the backup PSP L1 directory can be used. */
+			ctx.pspdir_bak = new_psp_dir(&ctx, &cb_config, PSP_COOKIE);
+			ctx.ish_a_dir = new_ish_dir(&ctx);
+			ctx.ish_b_dir = new_ish_dir(&ctx);
+		}
+
 		/* PSP L2 & BIOS L2 (if AB recovery) */
-		integrate_psp_firmwares(&ctx, amd_psp_fw_table, PSPL2_COOKIE, &cb_config);
+		ctx.pspdir2 = integrate_psp_firmwares(&ctx, amd_psp_fw_table, PSPL2_COOKIE, &cb_config);
 		if (cb_config.recovery_ab) {
 			integrate_bios_firmwares(&ctx, amd_bios_table, BHDL2_COOKIE,
 						 &cb_config);
 			if (!cb_config.recovery_ab_single_copy) {
-				integrate_psp_firmwares(&ctx, amd_psp_fw_table, PSPL2_COOKIE,
+				ctx.pspdir2_b = integrate_psp_firmwares(&ctx, amd_psp_fw_table, PSPL2_COOKIE,
 							&cb_config);
 				integrate_bios_firmwares(&ctx, amd_bios_table, BHDL2_COOKIE,
 							 &cb_config);
@@ -1764,7 +1751,7 @@ int main(int argc, char **argv)
 		integrate_psp_levels(&ctx, &cb_config);
 	} else {
 		/* flat: PSP 1 cookie and no pointer to 2nd table */
-		integrate_psp_firmwares(&ctx, amd_psp_fw_table, PSP_COOKIE, &cb_config);
+		ctx.pspdir = integrate_psp_firmwares(&ctx, amd_psp_fw_table, PSP_COOKIE, &cb_config);
 	}
 
 
