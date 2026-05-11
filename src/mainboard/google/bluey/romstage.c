@@ -106,6 +106,16 @@ int qclib_mainboard_override(struct qclib_cb_if_table *table)
 		table->global_attributes |= QCLIB_GA_ENABLE_PD_NEGOTIATION;
 	else
 		table->global_attributes &= ~QCLIB_GA_ENABLE_PD_NEGOTIATION;
+
+	uint32_t batt_pct;
+	if (!platform_get_battery_soc_information(&batt_pct)) {
+		printk(BIOS_WARNING, "Failed to get battery level\n");
+		return 0;
+	}
+
+	if (batt_pct <= SLOW_CHARGING_BATTERY_THRESHOLD)
+		table->global_attributes &= ~QCLIB_GA_ENABLE_PD_NEGOTIATION;
+
 	return 0;
 }
 

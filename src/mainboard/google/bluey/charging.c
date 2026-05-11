@@ -40,7 +40,7 @@
 #define SMB1_CHGR_CHARGING_FCC ((SMB1_SLAVE_ID << 16) | SCHG_CHGR_CHARGING_FCC)
 #define SMB2_CHGR_CHARGING_FCC ((SMB2_SLAVE_ID << 16) | SCHG_CHGR_CHARGING_FCC)
 
-#define FCC_1A_STEP_50MA 0x14
+#define FCC_3A_STEP_50MA 0x3C
 #define FCC_DISABLE 0x8c
 #define EN_DEBUG_ACCESS_SNK 0x1B
 #define EN_DEBUG_ACCESS_SRC 0x01
@@ -60,7 +60,7 @@
 
 #define DELAY_CHARGING_APPLET_MS 2000 /* 2sec */
 #define CHARGING_RAIL_STABILIZATION_DELAY_MS 5000 /* 5sec */
-#define LOW_BATTERY_CHARGING_LOOP_EXIT_MS (10 * 60 * 1000) /* 10min */
+#define LOW_BATTERY_CHARGING_LOOP_EXIT_MS (5 * 60 * 1000) /* 5min */
 #define DELAY_CHARGING_ACTIVE_LB_MS 4000 /* 4sec */
 
 enum charging_status {
@@ -212,8 +212,8 @@ void launch_charger_applet(void)
 		return;
 	}
 	/*
-	 * If the battery is less than 2%, enter low-battery charging mode and
-	 * start a timeout timer to prevent getting stuck in a dead-loop
+	 * If the battery is less than SLOW_CHARGING_BATTERY_THRESHOLD threshold, enter low-battery
+	 * charging mode and start a timeout timer to prevent getting stuck in a dead-loop
 	 * if the battery fails to charge.
 	 *
 	 * FIXME: b/497622018
@@ -318,8 +318,8 @@ void enable_slow_battery_charging(void)
 {
 	/* Configure FCC and enable charging */
 	printk(BIOS_INFO, "Use slow charging without fast charge support\n");
-	spmi_write8(SMB1_CHGR_MAX_FCC_CFG, FCC_1A_STEP_50MA);
-	spmi_write8(SMB2_CHGR_MAX_FCC_CFG, FCC_1A_STEP_50MA);
+	spmi_write8(SMB1_CHGR_MAX_FCC_CFG, FCC_3A_STEP_50MA);
+	spmi_write8(SMB2_CHGR_MAX_FCC_CFG, FCC_3A_STEP_50MA);
 	spmi_write8(SMB1_CHGR_CHRG_EN_CMD, CHRG_ENABLE);
 	spmi_write8(SMB2_CHGR_CHRG_EN_CMD, CHRG_ENABLE);
 }
