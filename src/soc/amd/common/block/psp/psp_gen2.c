@@ -34,11 +34,12 @@ static void wr_mbox_cmd(uint64_t base, uint8_t cmd)
 {
 	union pspv2_mbox_command tmp, reg = { .val = 0 };
 	/*
-	 * When A/B recovery is supported then the recovery bit must be preserved
-	 * for FSP. Clear the other fields to make sure PSP starts processing the
-	 * request.
+	 * When recovery boot is supported (A/B recovery or second SPI flash) then
+	 * the recovery bit must be preserved for FSP. Clear the other fields to
+	 * make sure PSP starts processing the request.
 	 */
-	if (CONFIG(PSP_AB_RECOVERY)) {
+	if (CONFIG(PSP_AB_RECOVERY) ||
+	    CONFIG(SOC_AMD_COMMON_BLOCK_SPI_BACKUP_SPI_FLASH)) {
 		tmp.val = psp_read32(base, PSP_MAILBOX_COMMAND_OFFSET);
 		reg.fields.recovery = tmp.fields.recovery;
 	}
@@ -97,10 +98,13 @@ int send_psp_command(uint32_t command, void *buffer)
 		return -PSPSTS_NOBASE;
 
 	/*
-	 * When A/B recovery is supported and when booting from recovery partition
-	 * the PSP is still functional even when reporting recovery mode.
+	 * When recovery boot is supported (A/B recovery or second SPI flash) and
+	 * when booting from recovery partition the PSP is still functional even when
+	 * reporting recovery mode.
 	 */
-	if (!CONFIG(PSP_AB_RECOVERY) && rd_mbox_recovery(base))
+	if (!(CONFIG(PSP_AB_RECOVERY) ||
+	      CONFIG(SOC_AMD_COMMON_BLOCK_SPI_BACKUP_SPI_FLASH)) &&
+	      rd_mbox_recovery(base))
 		return -PSPSTS_RECOVERY;
 
 	if (wait_command(base, true))
