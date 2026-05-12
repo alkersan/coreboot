@@ -1664,7 +1664,6 @@ static int open_process_config(char *config, amd_cb_config *cb_config)
 int main(int argc, char **argv)
 {
 	int retval = 0;
-	int targetfd;
 	context ctx = { 0 };
 	amd_cb_config cb_config = {
 		.efs_spi_readmode = 0xff, .efs_spi_speed = 0xff, .efs_spi_micron_flag = 0xff
@@ -1788,29 +1787,19 @@ int main(int argc, char **argv)
 	if (cb_config.debug)
 		dump_image_addresses(&ctx);
 
-	targetfd = open(cb_config.output, O_RDWR | O_CREAT | O_TRUNC, 0666);
-	if (targetfd >= 0) {
-		uint32_t offset = cb_config.efs_location;
-		uint32_t bytes = cb_config.efs_location == cb_config.body_location ?
-				ctx.current - offset : sizeof(embedded_firmware);
-		uint32_t ret_bytes;
-
-		ret_bytes = write_from_buf_to_file(targetfd, BUFF_OFFSET(ctx, offset), bytes);
-		if (bytes != ret_bytes) {
-			fprintf(stderr, "Error: Writing to file %s failed\n", cb_config.output);
-			retval = 1;
-		}
-		close(targetfd);
-	} else {
-		fprintf(stderr, "Error: could not open file: %s\n", cb_config.output);
+	/* Write EFS or all tables */
+	uint32_t efs_offset = cb_config.efs_location;
+	ssize_t bytes = cb_config.efs_location == cb_config.body_location ?
+			ctx.current - efs_offset : sizeof(embedded_firmware);
+	ssize_t ret_bytes = write_blob(cb_config.output, BUFF_OFFSET(ctx, efs_offset), bytes, "");
+	if (bytes != ret_bytes) {
+		fprintf(stderr, "Error: Writing to file %s failed\n", cb_config.output);
 		retval = 1;
 	}
 
 	if (cb_config.efs_location != cb_config.body_location) {
-		ssize_t bytes;
-
-		bytes = write_body(cb_config.output, BUFF_OFFSET(ctx, cb_config.body_location),
-			ctx.current - cb_config.body_location);
+		bytes = write_blob(cb_config.output, BUFF_OFFSET(ctx, cb_config.body_location),
+				   ctx.current - cb_config.body_location, BODY_FILE_SUFFIX);
 		if (bytes != ctx.current - cb_config.body_location) {
 			fprintf(stderr, "Error: Writing body\n");
 			retval = 1;

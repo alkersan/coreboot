@@ -83,7 +83,7 @@ ssize_t write_from_buf_to_file(int fd, const void *buf, size_t buf_size)
 	return buf_size;
 }
 
-ssize_t write_body(char *output, void *body_offset, ssize_t body_size)
+ssize_t write_blob(char *output, void *body_offset, ssize_t body_size, char *suffix)
 {
 	char body_name[PATH_MAX], body_tmp_name[PATH_MAX];
 	int ret;
@@ -93,7 +93,7 @@ ssize_t write_body(char *output, void *body_offset, ssize_t body_size)
 	/* Create a tmp file and rename it at the end so that make does not get confused
 	   if amdfwtool is killed for some unexpected reasons. */
 	ret = snprintf(body_tmp_name, sizeof(body_tmp_name), "%s%s%s",
-			output, BODY_FILE_SUFFIX, TMP_FILE_SUFFIX);
+			output, suffix, TMP_FILE_SUFFIX);
 	if (ret < 0) {
 		fprintf(stderr, "Error %s forming BODY tmp file name: %d\n",
 							strerror(errno), ret);
@@ -117,7 +117,7 @@ ssize_t write_body(char *output, void *body_offset, ssize_t body_size)
 	close(fd);
 
 	/* Rename the tmp file */
-	ret = snprintf(body_name, sizeof(body_name), "%s%s", output, BODY_FILE_SUFFIX);
+	ret = snprintf(body_name, sizeof(body_name), "%s%s", output, suffix);
 	if (ret < 0) {
 		fprintf(stderr, "Error %s forming BODY file name: %d\n", strerror(errno), ret);
 		return -1;

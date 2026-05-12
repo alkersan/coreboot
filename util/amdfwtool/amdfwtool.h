@@ -497,7 +497,7 @@ int find_bios_entry(amd_bios_type type);
 void write_or_fail(int fd, void *ptr, size_t size);
 ssize_t read_from_file_to_buf(int fd, void *buf, size_t buf_size);
 ssize_t write_from_buf_to_file(int fd, const void *buf, size_t buf_size);
-ssize_t write_body(char *output, void *body_offset, ssize_t body_size);
+ssize_t write_blob(char *output, void *body_offset, ssize_t body_size, char *suffix);
 ssize_t copy_blob(context *ctx, const char *src_file);
 #define OK 0
 
