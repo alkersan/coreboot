@@ -1746,7 +1746,8 @@ int main(int argc, char **argv)
 			/* Only on ISH platforms the backup PSP L1 directory can be used. */
 			ctx.pspdir_bak = new_psp_dir(&ctx, &cb_config, PSP_COOKIE);
 			ctx.ish_a_dir = new_ish_dir(&ctx);
-			ctx.ish_b_dir = new_ish_dir(&ctx);
+			if (!cb_config.recovery_ab_single_copy)
+				ctx.ish_b_dir = new_ish_dir(&ctx);
 		}
 
 		/* PSP L2 & BIOS L2 (if AB recovery) */
