@@ -71,5 +71,8 @@ $(obj)/amdfw.rom:	$(call strip_quotes, $(CONFIG_HUDSON_XHCI_FWM_FILE)) \
 
 cbfs-files-y += apu/amdfw
 apu/amdfw-file := $(obj)/amdfw.rom
-apu/amdfw-position := $(HUDSON_FWM_POSITION)
+apu/amdfw-position := $(call int-add, \
+	$(call int-subtract, 0xffffffff $(CONFIG_ROM_SIZE)) \
+	1 \
+	$(HUDSON_FWM_POSITION))
 apu/amdfw-type := raw
