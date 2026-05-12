@@ -357,15 +357,19 @@ bool dptx_hal_auxread_bytes(struct mtk_dp *mtk_dp, u8 cmd, u32 dpcd_addr, size_t
 	}
 
 	reply_cmd = mtk_dp_read(mtk_dp, REG_3624_AUX_TX_P0) & 0xf;
-	if (reply_cmd)
-		printk(BIOS_ERR, "reply_cmd(%#x), NACK or Defer\n", reply_cmd);
 
-	if (wait_reply_count == 0x0 || reply_cmd) {
-		u8 phy_status = 0x0;
+	if (wait_reply_count == 0x0 || reply_cmd != DP_AUX_NATIVE_REPLY_ACK) {
+		if (wait_reply_count == 0)
+			printk(BIOS_ERR, "AUX Read timeout\n");
+		else if (reply_cmd == DP_AUX_NATIVE_REPLY_DEFER ||
+			 reply_cmd == DP_AUX_I2C_REPLY_DEFER)
+			printk(BIOS_DEBUG, "reply_cmd(%#x), Defer\n", reply_cmd);
+		else
+			printk(BIOS_ERR, "reply_cmd(%#x), NACK\n", reply_cmd);
 
-		phy_status = mtk_dp_read(mtk_dp, REG_3628_AUX_TX_P0);
+		u8 phy_status = mtk_dp_read(mtk_dp, REG_3628_AUX_TX_P0);
 		if (phy_status != 0x1)
-			printk(BIOS_ERR, "Aux read: aux hang, need sw reset\n");
+			printk(BIOS_ERR, "AUX Read hanging, need SW reset\n");
 
 		mtk_dp_mask(mtk_dp, REG_3650_AUX_TX_P0,
 			    0x1 << MCU_ACK_TRAN_COMPLETE_AUX_TX_P0_FLDMASK_POS,
@@ -373,7 +377,6 @@ bool dptx_hal_auxread_bytes(struct mtk_dp *mtk_dp, u8 cmd, u32 dpcd_addr, size_t
 		DP_WRITE1BYTE(mtk_dp, REG_3640_AUX_TX_P0, 0x7f);
 
 		mdelay(1);
-		printk(BIOS_ERR, "wait_reply_count(%#x), TimeOut\n", wait_reply_count);
 		return false;
 	}
 
@@ -461,23 +464,24 @@ bool dptx_hal_auxwrite_bytes(struct mtk_dp *mtk_dp, u8 cmd, u32 dpcd_addr, size_
 	}
 
 	reply_cmd = mtk_dp_read(mtk_dp, REG_3624_AUX_TX_P0) & 0xf;
-	if (reply_cmd)
-		printk(BIOS_ERR, "reply_cmd(%#x), NACK or Defer\n", reply_cmd);
 
-	if (wait_reply_count == 0x0 || reply_cmd) {
-		u8 phy_status = 0x0;
+	if (wait_reply_count == 0x0 || reply_cmd != DP_AUX_NATIVE_REPLY_ACK) {
+		if (wait_reply_count == 0)
+			printk(BIOS_ERR, "AUX Write timeout\n");
+		else if (reply_cmd == DP_AUX_NATIVE_REPLY_DEFER ||
+			 reply_cmd == DP_AUX_I2C_REPLY_DEFER)
+			printk(BIOS_DEBUG, "reply_cmd(%#x), Defer\n", reply_cmd);
+		else
+			printk(BIOS_ERR, "reply_cmd(%#x), NACK\n", reply_cmd);
 
-		phy_status = mtk_dp_read(mtk_dp, REG_3628_AUX_TX_P0);
+		u8 phy_status = mtk_dp_read(mtk_dp, REG_3628_AUX_TX_P0);
 		if (phy_status != 0x1)
-			printk(BIOS_ERR, "Aux write: aux hang, need SW reset!\n");
+			printk(BIOS_ERR, "AUX Write hanging, need SW reset\n");
 
 		DP_WRITE1BYTE(mtk_dp, REG_3650_AUX_TX_P0 + 1, 0x1);
 		DP_WRITE1BYTE(mtk_dp, REG_3640_AUX_TX_P0, 0x7f);
 
 		mdelay(1);
-
-		printk(BIOS_INFO, "reply_cmd(%#x), wait_reply_count(%d)\n", reply_cmd,
-		       wait_reply_count);
 		return false;
 	}
 
