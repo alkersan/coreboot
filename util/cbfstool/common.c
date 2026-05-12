@@ -46,6 +46,18 @@ int buffer_create(struct buffer *buffer, size_t size, const char *name)
 int buffer_from_file_aligned_size(struct buffer *buffer, const char *filename,
 				  size_t size_granularity)
 {
+	struct stat st;
+
+	if (stat(filename, &st) == -1) {
+		perror(filename);
+		return -1;
+	}
+
+	if (!S_ISREG(st.st_mode)) {
+		fprintf(stderr, "%s is not a regular file\n", filename);
+		return -1;
+	}
+
 	FILE *fp = fopen(filename, "rb");
 	if (!fp) {
 		perror(filename);
