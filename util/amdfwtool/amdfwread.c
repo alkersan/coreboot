@@ -260,7 +260,7 @@ static int read_soft_fuse(FILE *fw, const embedded_firmware *fw_header)
 					return 1;
 				}
 
-				ish_dir_offset = relative_offset(psp_offset, addr, mode);
+				ish_dir_offset = relative_offset(psp_offset, addr, AMD_ADDR_REL_BIOS);
 				if (read_ish_directory(fw, ish_dir_offset, &ish_dir) != 0) {
 					ERR("Error reading ISH directory\n");
 					free(current_entries);
@@ -447,6 +447,10 @@ static int amdfw_psp_dir_walk(FILE *fw, uint32_t psp_offset, uint32_t cookie, ui
 		if (dir_mode < AMD_ADDR_REL_TAB)
 			mode = dir_mode;
 
+		/* RECOVERY_AB is always relative to BIOS */
+		if (type == AMD_FW_RECOVERYAB_B || type == AMD_FW_RECOVERYAB_A)
+			mode = AMD_ADDR_REL_BIOS;
+
 		if (type == AMD_PSP_FUSE_CHAIN)
 			printf("%sPSP%s: 0x%02x 0x%lx(Soft-fuse)\n",
 				indent, cookie == PSP_COOKIE ? "L1" : "L2",
@@ -484,7 +488,7 @@ static int amdfw_psp_dir_walk(FILE *fw, uint32_t psp_offset, uint32_t cookie, ui
 				return 1;
 			}
 
-			ish_dir_offset = relative_offset(psp_offset, addr, mode);
+			ish_dir_offset = relative_offset(psp_offset, addr, AMD_ADDR_REL_BIOS);
 			/* Test if it points to PSP L2 */
 			if (test_if_psp_directory(fw, ish_dir_offset, PSPL2_COOKIE)) {
 				/* Legacy A/B recovery has no ISH */
@@ -521,7 +525,7 @@ static int amdfw_psp_dir_walk(FILE *fw, uint32_t psp_offset, uint32_t cookie, ui
 				return 1;
 			}
 
-			ish_dir_offset = relative_offset(psp_offset, addr, mode);
+			ish_dir_offset = relative_offset(psp_offset, addr, AMD_ADDR_REL_BIOS);
 			/* Test if it points to PSP L2 */
 			if (test_if_psp_directory(fw, ish_dir_offset, PSPL2_COOKIE)) {
 				/* Legacy A/B recovery has no ISH */
