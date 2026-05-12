@@ -192,7 +192,7 @@ OPT_PSP_SOFTFUSE=$(call add_opt_prefix, $(PSP_SOFTFUSE), --soft-fuse)
 OPT_WHITELIST_FILE=$(call add_opt_prefix, $(PSP_WHITELIST_FILE), --whitelist)
 OPT_SPL_TABLE_FILE=$(call add_opt_prefix, $(SPL_TABLE_FILE), --spl-table)
 
-OPT_RECOVERY_AB=$(call add_opt_prefix, $(CONFIG_PSP_RECOVERY_AB), --recovery-ab)
+OPT_RECOVERY_AB=$(call add_opt_prefix, $(CONFIG_PSP_AB_RECOVERY), --recovery-ab)
 OPT_BIOS_AMDCOMPRESS=$(if $(CONFIG_CBFS_VERIFICATION), --elfcopy, --compress)
 OPT_BIOS_FWCOMPRESS=$(if $(CONFIG_CBFS_VERIFICATION), --bios-bin-uncomp)
 

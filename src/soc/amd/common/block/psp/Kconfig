@@ -28,6 +28,15 @@ config SOC_AMD_COMMON_BLOCK_PSP_GEN2_EARLY_ACCESS
 	  Allow PSP mailbox access in bootblock and romstage using the SMN
 	  access method to the mailbox registers.
 
+config PSP_AB_RECOVERY
+	bool "Use A/B Recovery scheme"
+	depends on !VBOOT && !CHROMEOS
+	select CBFS_VERIFICATION
+	select SOC_AMD_COMMON_BLOCK_PSP_GEN2_EARLY_ACCESS
+	default n
+	help
+	  Enable the PSP A/B Recovery mechanism
+
 config SOC_AMD_PSP_SELECTABLE_SMU_FW
 	bool
 	help
