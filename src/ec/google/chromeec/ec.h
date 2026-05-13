@@ -565,6 +565,14 @@ int google_chromeec_read_batt_state_of_charge(uint32_t *state);
 int google_chromeec_read_batt_remaining_capacity(uint32_t *capacity);
 
 /*
+ * Query the EC for the Battery MISC Information.
+ *
+ * Return: 0 on success, or -1 if the command fails or is
+ *         unsupported by the current EC firmware version.
+ */
+int google_chromeec_get_battery_misc_info(struct ec_response_battery_get_misc_info *resp);
+
+/*
  * Set the RGB color of a specific LED on the Lightbar.
  *
  * This function communicates with the Embedded Controller (EC)

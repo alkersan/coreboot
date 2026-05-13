@@ -2004,6 +2004,47 @@ int google_chromeec_read_batt_remaining_capacity(uint32_t *capacity)
 }
 
 /*
+ * Query the EC for the Battery MISC Information.
+ *
+ * Sends a host command to the ChromeOS Embedded Controller to retrieve the status
+ * of the battery's charging field-effect transistor (CFET) at index 0 and battery
+ * status.
+ *
+ * Return: 0 on success, or -1 if the command fails or is
+ *         unsupported by the current EC firmware version.
+ */
+int google_chromeec_get_battery_misc_info(struct ec_response_battery_get_misc_info *resp)
+{
+	const struct ec_params_battery_get_misc_info params = {
+		.index = 0
+	};
+
+	struct chromeec_command cmd = {
+		.cmd_code = EC_CMD_BATTERY_GET_MISC_INFO,
+		.cmd_version = 0,
+		.cmd_size_in = sizeof(params),
+		.cmd_data_in = &params,
+		.cmd_size_out = sizeof(struct ec_response_battery_get_misc_info),
+		.cmd_data_out = resp,
+		.cmd_dev_index = 0,
+	};
+
+	int rv;
+
+	rv = google_chromeec_command(&cmd);
+
+	if (rv != 0 && (cmd.cmd_code == EC_RES_INVALID_COMMAND ||
+				cmd.cmd_code == EC_RES_INVALID_PARAM)) {
+		printk(BIOS_INFO, "BATTERY_GET_CFET_STATUS not supported by EC.\n");
+		return -1;
+	} else if (rv != 0) {
+		return -1;
+	}
+
+	return 0;
+}
+
+/*
  * Set the RGB color of a specific LED on the Lightbar.
  *
  * This function communicates with the Embedded Controller (EC)
