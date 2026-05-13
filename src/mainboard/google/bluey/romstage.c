@@ -6,8 +6,10 @@
 #include <cbmem.h>
 #include <commonlib/bsd/cbmem_id.h>
 #include <commonlib/coreboot_tables.h>
+#include <delay.h>
 #include <ec/google/chromeec/ec.h>
 #include <gpio.h>
+#include <reset.h>
 #include <security/vboot/vboot_common.h>
 #include <soc/aop_common.h>
 #include <soc/pcie.h>
@@ -17,9 +19,14 @@
 #include <soc/shrm.h>
 #include <soc/watchdog.h>
 
+#define DELAY_FOR_SHIP_MODE 11000 /* 11sec */
+
 static enum boot_mode_t boot_mode = LB_BOOT_MODE_NORMAL;
 static bool battery_present = true;
 static bool battery_below_threshold = false;
+static int32_t battery_cfet_status = 1; /* Active C-FET */
+static int32_t battery_dfet_status = 1; /* Active D-FET */
+static bool battery_needs_recovery = false;
 
 /*
  * is_off_mode - Check if the system is booting due to an off-mode power event.
@@ -76,7 +83,8 @@ static bool is_pd_sync_required(void)
 	if (!(ec_events & EC_HOST_EVENT_MASK(EC_HOST_EVENT_AC_CONNECTED)))
 		return false;
 
-	if (!(ec_events & manual_pwron_event_mask) || battery_below_threshold || !battery_present)
+	if (!(ec_events & manual_pwron_event_mask) || battery_below_threshold ||
+			!battery_present || !battery_cfet_status)
 		return true;
 
 	return false;
@@ -129,7 +137,8 @@ static void early_setup_usb_typec(void)
 	 * Only disable Type-C if the battery is present and not
 	 * at a critical level, to prevent abrupt power-off.
 	 */
-	if (battery_present && !battery_below_threshold) {
+	bool battery_power_ready = battery_present && (battery_cfet_status || battery_dfet_status);
+	if (!battery_below_threshold && battery_power_ready) {
 		gpio_output(GPIO_USB_C0_EN_L, 1);
 		gpio_output(GPIO_USB_C1_EN_L, 1);
 	}
@@ -176,8 +185,23 @@ static void update_battery_status(void)
 	if (!CONFIG(EC_GOOGLE_CHROMEEC))
 		return;
 
+	struct ec_response_battery_get_misc_info misc_info;
+
 	battery_present = google_chromeec_is_battery_present();
 	battery_below_threshold = google_chromeec_is_below_critical_threshold();
+
+	if (!google_chromeec_get_battery_misc_info(&misc_info)) {
+		battery_cfet_status = misc_info.cfet_status;
+		battery_dfet_status = misc_info.dfet_status;
+	}
+
+	/*
+	 * SHIP MODE RECOVERY HANDLER:
+	 * Triggered when the battery is present, CFET is disabled, and the
+	 * battery status indicates it is waiting in an uninitialized charging state.
+	 */
+	bool is_bms_locked = (battery_cfet_status <= 0) && (battery_dfet_status <= 0);
+	battery_needs_recovery = battery_present && is_bms_locked;
 }
 
 /* Perform romstage early hardware initialization */
@@ -209,7 +233,9 @@ static void mainboard_setup_peripherals_early(void)
 
 static void late_setup_usb_typec(void)
 {
-	if (!battery_present || battery_below_threshold)
+	bool battery_power_ready = battery_present && (battery_cfet_status || battery_dfet_status);
+
+	if (battery_below_threshold || !battery_power_ready)
 		return;
 
 	gpio_output(GPIO_USB_C0_EN_L, 0);
@@ -239,6 +265,20 @@ static void mainboard_setup_peripherals_late(int mode)
 	}
 }
 
+static void handle_battery_shipping_recovery(void)
+{
+	printk(BIOS_INFO, "==================================================\n");
+	printk(BIOS_INFO, "Device has entered into shipping recovery mode.\n");
+	printk(BIOS_INFO, "Please wait ...\n");
+	printk(BIOS_INFO, "==================================================\n");
+
+	enable_slow_battery_charging();
+	mdelay(DELAY_FOR_SHIP_MODE);
+
+	printk(BIOS_INFO, "Issuing board reset\n");
+	do_board_reset();
+}
+
 void platform_romstage_main(void)
 {
 	mainboard_setup_peripherals_early();
@@ -248,6 +288,10 @@ void platform_romstage_main(void)
 
 	/* QCLib: DDR init & train */
 	qclib_load_and_run();
+
+	/* Recovery from battery shipping mode */
+	if (battery_needs_recovery)
+		handle_battery_shipping_recovery();
 
 	init_sdam_config();
 
