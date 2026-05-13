@@ -188,7 +188,7 @@ config FSP_TEMP_RAM_SIZE
 
 config HEAP_SIZE
 	hex
-	default 0x10000
+	default 0x200000
 
 config CHIPSET_DEVICETREE
 	string
