@@ -552,6 +552,7 @@ static void intel_me_finalize(struct device *dev)
 
 	/* Hide the PCI device */
 	RCBA32_OR(FD2, PCH_DISABLE_MEI1);
+	RCBA32(FD2);
 }
 
 static int me_icc_set_clock_enables(u32 mask)
