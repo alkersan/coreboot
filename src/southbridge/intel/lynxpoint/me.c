@@ -506,7 +506,6 @@ static int mkhi_end_of_post(void)
 	u32 eop_ack;
 
 	/* Send request and wait for response */
-	printk(BIOS_NOTICE, "ME: %s\n", __func__);
 	if (mei_sendrecv_mkhi(&mkhi, NULL, 0, &eop_ack, sizeof(eop_ack)) < 0) {
 		printk(BIOS_ERR, "ME: END OF POST message failed\n");
 		return -1;
