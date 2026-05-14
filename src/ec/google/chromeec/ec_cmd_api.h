@@ -115,6 +115,14 @@ static inline int ec_cmd_fp_frame(CROS_EC_COMMAND_INFO *h,
 			       p->size);
 }
 
+static inline int ec_cmd_fp_frame_v1(CROS_EC_COMMAND_INFO *h,
+				     const struct ec_params_fp_frame_v1 *p,
+				     uint8_t *r)
+{
+	return CROS_EC_COMMAND(h, EC_CMD_FP_FRAME, 1, p, sizeof(*p), r,
+			       p->size);
+}
+
 static inline int ec_cmd_fp_template(CROS_EC_COMMAND_INFO *h,
 				     const struct ec_params_fp_template *p,
 				     int size)
@@ -122,11 +130,25 @@ static inline int ec_cmd_fp_template(CROS_EC_COMMAND_INFO *h,
 	return CROS_EC_COMMAND(h, EC_CMD_FP_TEMPLATE, 0, p, size, NULL, 0);
 }
 
+static inline int
+ec_cmd_fp_template_v1(CROS_EC_COMMAND_INFO *h,
+		      const struct ec_params_fp_template_v1 *p, int size)
+{
+	return CROS_EC_COMMAND(h, EC_CMD_FP_TEMPLATE, 1, p, size, NULL, 0);
+}
+
 static inline int ec_cmd_fp_info_v2(CROS_EC_COMMAND_INFO *h,
 				    struct ec_response_fp_info_v2 *r,
 				    size_t resp_size)
 {
 	return CROS_EC_COMMAND(h, EC_CMD_FP_INFO, 2, NULL, 0, r, resp_size);
+}
+
+static inline int ec_cmd_fp_info_v3(CROS_EC_COMMAND_INFO *h,
+				    struct ec_response_fp_info_v3 *r,
+				    size_t resp_size)
+{
+	return CROS_EC_COMMAND(h, EC_CMD_FP_INFO, 3, NULL, 0, r, resp_size);
 }
 
 /*
@@ -273,6 +295,8 @@ _CROS_EC_CV_F_P(EC_CMD_BATTERY_CUT_OFF, 1, battery_cut_off_v1, battery_cutoff);
 _CROS_EC_C0_F(EC_CMD_BATTERY_CUT_OFF, battery_cut_off);
 _CROS_EC_CV_F_P_R(EC_CMD_BATTERY_GET_DYNAMIC, 0, battery_get_dynamic,
 		  battery_dynamic_info, battery_dynamic_info);
+_CROS_EC_CV_F_P_R(EC_CMD_BATTERY_GET_DYNAMIC, 1, battery_get_dynamic_v1,
+		  battery_dynamic_info, battery_dynamic_info_v1);
 _CROS_EC_CV_F_P_R(EC_CMD_BATTERY_GET_STATIC, 0, battery_get_static,
 		  battery_static_info, battery_static_info);
 _CROS_EC_CV_F_P_R(EC_CMD_BATTERY_GET_STATIC, 1, battery_get_static_v1,
@@ -361,6 +385,8 @@ _CROS_EC_CV_F_P(EC_CMD_HOST_EVENT_SET_WAKE_MASK, 0, host_event_set_wake_mask,
 		host_event_mask);
 _CROS_EC_C0_F_PF(EC_CMD_HOST_SLEEP_EVENT, host_sleep_event);
 _CROS_EC_C1_F_PF_RF(EC_CMD_HOST_SLEEP_EVENT, host_sleep_event);
+_CROS_EC_C0_F_RF(EC_CMD_HOST_SLEEP_SIGNAL_TRANSITIONS,
+		 host_sleep_signal_transitions);
 _CROS_EC_C0_F_PF_RF(EC_CMD_I2C_CONTROL, i2c_control);
 _CROS_EC_C0_F_PF_RF(EC_CMD_I2C_PASSTHRU_PROTECT, i2c_passthru_protect);
 _CROS_EC_C0_F_RF(EC_CMD_KEYBOARD_FACTORY_TEST, keyboard_factory_test);
@@ -418,6 +444,7 @@ _CROS_EC_C0_F_PF_RF(EC_CMD_REGULATOR_IS_ENABLED, regulator_is_enabled);
 _CROS_EC_C0_F_PF(EC_CMD_REGULATOR_SET_VOLTAGE, regulator_set_voltage);
 _CROS_EC_C0_F_PF_RF(EC_CMD_RGBKBD, rgbkbd);
 _CROS_EC_C0_F_RF(EC_CMD_ROLLBACK_INFO, rollback_info);
+_CROS_EC_C1_F_RF(EC_CMD_ROLLBACK_INFO, rollback_info);
 _CROS_EC_CV_F_R(EC_CMD_RTC_GET_ALARM, 0, rtc_get_alarm, rtc);
 _CROS_EC_CV_F_R(EC_CMD_RTC_GET_VALUE, 0, rtc_get_value, rtc);
 _CROS_EC_CV_F_P(EC_CMD_RTC_SET_ALARM, 0, rtc_set_alarm, rtc);
@@ -461,6 +488,10 @@ _CROS_EC_C0_F_PF_RF(EC_CMD_VSTORE_READ, vstore_read);
 _CROS_EC_C0_F_PF(EC_CMD_VSTORE_WRITE, vstore_write);
 _CROS_EC_C0_F_PF(EC_CMD_UCSI_PPM_SET, ucsi_ppm_set);
 _CROS_EC_C0_F_PF(EC_CMD_UCSI_PPM_GET, ucsi_ppm_get);
+_CROS_EC_C0_F_PF(EC_CMD_FP_VENDOR, fp_vendor);
+_CROS_EC_C0_F_RF(EC_CMD_FP_ASCP_CLAIM, fp_ascp_claim);
+_CROS_EC_C0_F_PF(EC_CMD_FP_ASCP_ESTABLISH, fp_ascp_establish);
+_CROS_EC_C0_F_PF(EC_CMD_ENTER_BOOTLOADER, enter_bootloader);
 
 #ifdef __cplusplus
 }

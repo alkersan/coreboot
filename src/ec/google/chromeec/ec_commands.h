@@ -763,10 +763,12 @@ enum ec_status {
 } __packed;
 BUILD_ASSERT(sizeof(enum ec_status) == sizeof(uint16_t));
 #ifdef CONFIG_EC_HOST_CMD
+#ifdef CONFIG_ZEPHYR
 /*
  * Make sure Zephyre uses the same status codes.
  */
 #include <zephyr/mgmt/ec_host_cmd/ec_host_cmd.h>
+#endif
 
 BUILD_ASSERT((uint16_t)EC_RES_SUCCESS == (uint16_t)EC_HOST_CMD_SUCCESS);
 BUILD_ASSERT((uint16_t)EC_RES_INVALID_COMMAND ==
@@ -934,6 +936,9 @@ enum host_event_code {
 	/* Body detect (lap/desk) change event */
 	EC_HOST_EVENT_BODY_DETECT_CHANGE = 33,
 
+	/* New console logs since last snapshot */
+	EC_HOST_EVENT_CONSOLE_LOGS = 34,
+
 	/*
 	 * Only 64 host events are supported. This enum uses 1-based counting so
 	 * it can skip 0 (NONE), so the last legal host event number is 64.
@@ -981,6 +986,7 @@ enum host_event_code {
 		[EC_HOST_EVENT_WOV] = "WOV",                                   \
 		[EC_HOST_EVENT_INVALID] = "INVALID",                           \
 		[EC_HOST_EVENT_BODY_DETECT_CHANGE] = "BODY_DETECT_CHANGE",     \
+		[EC_HOST_EVENT_CONSOLE_LOGS] = "CONSOLE_LOGS",                 \
 	}
 /* clang-format on */
 
@@ -1780,6 +1786,10 @@ enum ec_feature_code {
 	 * The EC supports a hybrid boost charger
 	 */
 	EC_FEATURE_CHARGER_HYBRID_POWER_BOOST = 57,
+	/*
+	 * Support signaling new console logs via host event
+	 */
+	EC_FEATURE_CONSOLE_LOG_EVENT = 58,
 };
 
 #define EC_FEATURE_MASK_0(event_code) BIT(event_code % 32)
@@ -2533,12 +2543,31 @@ struct lightbar_params_v2_colors {
 	struct rgb_s color[8]; /* 0-3 are Google colors */
 } __ec_todo_packed;
 
+struct lightbar_params_v3 {
+	/*
+	 *  Number of LEDs reported by the EC.
+	 *  May be less than the actual number of LEDs in the lightbar.
+	 */
+	uint8_t reported_led_num;
+} __ec_todo_packed;
+
 /* Lightbar program. */
 #define EC_LB_PROG_LEN 192
 struct lightbar_program {
 	uint8_t size;
 	uint8_t data[EC_LB_PROG_LEN];
 } __ec_todo_unpacked;
+
+/*
+ * Lightbar program for large sequences. Sequences are sent in pieces, with
+ * increasing offset. The sequences are still limited by the amount reserved in
+ * EC RAM.
+ */
+struct lightbar_program_ex {
+	uint8_t size;
+	uint16_t offset;
+	uint8_t data[0];
+} __ec_todo_packed;
 
 struct ec_params_lightbar {
 	uint8_t cmd; /* Command (see enum lightbar_command) */
@@ -2586,6 +2615,7 @@ struct ec_params_lightbar {
 		struct lightbar_params_v2_colors set_v2par_colors;
 
 		struct lightbar_program set_program;
+		struct lightbar_program_ex set_program_ex;
 	};
 } __ec_todo_packed;
 
@@ -2612,6 +2642,8 @@ struct ec_response_lightbar {
 		struct lightbar_params_v2_brightness get_params_v2_bright;
 		struct lightbar_params_v2_thresholds get_params_v2_thlds;
 		struct lightbar_params_v2_colors get_params_v2_colors;
+
+		struct lightbar_params_v3 get_params_v3;
 
 		struct __ec_todo_unpacked {
 			uint32_t num;
@@ -2670,6 +2702,8 @@ enum lightbar_command {
 	LIGHTBAR_CMD_SET_PARAMS_V2_THRESHOLDS = 31,
 	LIGHTBAR_CMD_GET_PARAMS_V2_COLORS = 32,
 	LIGHTBAR_CMD_SET_PARAMS_V2_COLORS = 33,
+	LIGHTBAR_CMD_GET_PARAMS_V3 = 34,
+	LIGHTBAR_CMD_SET_PROGRAM_EX = 35,
 	LIGHTBAR_NUM_CMDS,
 };
 
@@ -2714,6 +2748,7 @@ enum ec_led_colors {
 	EC_LED_COLOR_YELLOW,
 	EC_LED_COLOR_WHITE,
 	EC_LED_COLOR_AMBER,
+	EC_LED_COLOR_MAGENTA,
 
 	EC_LED_COLOR_COUNT,
 };
@@ -2999,6 +3034,7 @@ enum motionsensor_chip {
 	MOTIONSENSE_CHIP_BMI220 = 29,
 	MOTIONSENSE_CHIP_CM32183 = 30,
 	MOTIONSENSE_CHIP_VEML3328 = 31,
+	MOTIONSENSE_CHIP_CM36781 = 32,
 	MOTIONSENSE_CHIP_MAX,
 };
 
@@ -5314,6 +5350,17 @@ struct ec_response_s0ix_cnt {
 } __ec_align4;
 
 /*****************************************************************************/
+/* Ask the EC for sleep_signal_transitions without needing to send a
+ * HOST_SLEEP_EVENT command, which this command is related to.
+ * Note: EC_CMD_CONSOLE_PRINT has value 0x00AC, so skip over it.
+ */
+#define EC_CMD_HOST_SLEEP_SIGNAL_TRANSITIONS 0x00AD
+
+struct ec_response_host_sleep_signal_transitions {
+	uint32_t sleep_signal_transitions;
+} __ec_align4;
+
+/*****************************************************************************/
 /* Smart battery pass-through */
 
 /* Get / Set 16-bit smart battery registers  - OBSOLETE */
@@ -5849,6 +5896,16 @@ struct ec_params_get_panic_info_v1 {
 	uint8_t preserve_old_hostcmd_flag;
 } __ec_align1;
 
+struct ec_params_get_panic_info_v2 {
+	/* Do not modify PANIC_DATA_FLAG_OLD_HOSTCMD when reading panic info */
+	uint8_t preserve_old_hostcmd_flag;
+
+	/* Read panic_data struct from this offset.
+	 * Signal end of data with empty success.
+	 */
+	uint16_t read_offset;
+} __ec_align1;
+
 /*****************************************************************************/
 /*
  * Special commands
@@ -5986,6 +6043,109 @@ struct ec_params_enter_bootloader {
 	/* Mode to enter bootloader. Chip specific value. Can be unused. */
 	uint8_t mode;
 } __ec_align1;
+
+#define EC_CMD_HOSTCMD_WATCHDOG_INFO 0x00E3
+
+struct ec_params_hostcmd_watchdog_info {
+	uint8_t reset_stats;
+} __ec_align1;
+
+struct ec_response_hostcmd_watchdog_info {
+	/* Static watchdog info */
+	int32_t watchdog_period_ms;
+	int32_t watchdog_warning_period_ms;
+	int32_t watchdog_reload_period_nominal_ms;
+	/* Dynamic watchdog stats */
+	int32_t watchdog_reload_period_max_ms;
+	int64_t watchdog_reload_period_max_ts_ms;
+	uint32_t watchdog_reload_count;
+	int64_t watchdog_stats_elapsed_ms;
+} __ec_align4;
+
+#define EC_THREAD_INFO_MAX_COUNT 32
+#define EC_THREAD_INFO_NAME_SIZE 16
+
+#define EC_CMD_THREAD_INFO_LIST 0x00E4
+
+struct ec_response_thread_info_list {
+	/* Total number of threads found, or EC_THREAD_INFO_MAX_COUNT if it
+	 * exceeds the limit.
+	 */
+	uint32_t thread_count;
+	uint32_t thread_ids[EC_THREAD_INFO_MAX_COUNT];
+} __ec_align4;
+
+#define EC_CMD_THREAD_INFO_DETAIL 0x00E5
+
+#define EC_THREAD_INFO_DETAIL_STACK_VALID  \
+	BIT(0) /* CONFIG_THREAD_STACK_INFO \
+		*/
+#define EC_THREAD_INFO_DETAIL_RUNTIME_USAGE_VALID \
+	BIT(1) /* CONFIG_SCHED_THREAD_USAGE */
+#define EC_THREAD_INFO_DETAIL_USAGE_ANALYSIS_VALID \
+	BIT(2) /* CONFIG_SCHED_THREAD_USAGE_ANALYSIS */
+#define EC_THREAD_INFO_DETAIL_NAME_VALID BIT(3) /* CONFIG_THREAD_NAME */
+#define EC_THREAD_INFO_DETAIL_PC_VALID BIT(4)
+#define EC_THREAD_INFO_DETAIL_LR_VALID BIT(5)
+#define EC_THREAD_INFO_DETAIL_SP_VALID BIT(6)
+
+struct ec_params_thread_info_detail {
+	uint32_t thread_id;
+} __ec_align4;
+
+/*
+ * These commands are ONLY applicable to Zephyr threads.
+ */
+struct ec_response_thread_info_detail {
+	/* Metadata */
+	uint64_t timestamp_us; /* System uptime when stats were collected */
+	uint32_t valid_flags; /* See EC_THREAD_INFO_DETAIL_*_VALID flags */
+
+	/* Name (Only valid if EC_THREAD_INFO_DETAIL_NAME_VALID is set).
+	 * Guaranteed to be null-terminated.
+	 */
+	char name[EC_THREAD_INFO_NAME_SIZE];
+
+	/* Basic information */
+	uint32_t entry_point; /* Thread entry point function address */
+	uint32_t timeout_us;
+	/*
+	 * Remaining timeout in us, 0xffffffff if forever,
+	 * 0 if none
+	 */
+
+	uint16_t user_options; /* From k_thread->base.user_options */
+	int8_t prio; /* From k_thread->base.prio */
+	uint8_t thread_state; /* From k_thread->base.thread_state */
+	uint8_t is_idle; /* 1 if per-CPU idle thread, 0 otherwise */
+	uint8_t is_current; /* 1 if thread is current, 0 otherwise */
+	uint8_t reserved[2]; /* Padding for alignment */
+
+	/* Stack usage (Only valid if EC_THREAD_INFO_DETAIL_STACK_VALID is set)
+	 */
+	uint32_t stack_cur;
+	uint32_t stack_max;
+	uint32_t stack_size;
+
+	/* Timing (Only valid if EC_THREAD_INFO_DETAIL_RUNTIME_USAGE_VALID is
+	 * set)
+	 */
+	uint32_t execution_time_us;
+
+	/* Analysis (Only valid if EC_THREAD_INFO_DETAIL_USAGE_ANALYSIS_VALID is
+	 * set)
+	 */
+	uint32_t window_peak_us;
+	uint32_t window_avg_us;
+
+	/* CPU scheduling */
+	uint32_t pending_on; /* Address of object thread is blocked on */
+
+	/* CPU registers (Valid flags: EC_THREAD_INFO_DETAIL_PC_VALID, etc.) */
+	uint32_t pc;
+	uint32_t lr;
+	uint32_t sp;
+} __ec_align4;
 
 /*****************************************************************************/
 /*
@@ -6938,6 +7098,14 @@ struct ec_response_rollback_info {
 	int32_t id; /* Incrementing number to indicate which region to use. */
 	int32_t rollback_min_version;
 	int32_t rw_rollback_version;
+} __ec_align4;
+
+struct ec_response_rollback_info_v1 {
+	int32_t id; /* Incrementing number to indicate which region to use. */
+	int32_t rollback_min_version;
+	int32_t rw_rollback_version;
+	uint8_t is_secret_inited;
+	uint8_t reserved[3];
 } __ec_align4;
 
 /* Issue AP reset */
@@ -8369,6 +8537,12 @@ struct ec_params_fp_passthru {
 #define FP_MODE_RESET_SENSOR BIT(7)
 /* Sensor maintenance for dead pixels. */
 #define FP_MODE_SENSOR_MAINTENANCE BIT(8)
+/* Encrypt template. */
+#define FP_MODE_ENCRYPT_TEMPLATE BIT(9)
+/* Decrypt template. */
+#define FP_MODE_DECRYPT_TEMPLATE BIT(10)
+/* Disable template update. */
+#define FP_MODE_MATCH_NO_TEMPLATE_UPDATE BIT(11)
 /* special value: don't change anything just read back current mode */
 #define FP_MODE_DONT_CHANGE BIT(31)
 
@@ -8376,9 +8550,16 @@ struct ec_params_fp_passthru {
 	(FP_MODE_DEEPSLEEP | FP_MODE_FINGER_DOWN | FP_MODE_FINGER_UP |       \
 	 FP_MODE_CAPTURE | FP_MODE_ENROLL_SESSION | FP_MODE_ENROLL_IMAGE |   \
 	 FP_MODE_MATCH | FP_MODE_RESET_SENSOR | FP_MODE_SENSOR_MAINTENANCE | \
-	 FP_MODE_DONT_CHANGE)
+	 FP_MODE_ENCRYPT_TEMPLATE | FP_MODE_DECRYPT_TEMPLATE |               \
+	 FP_MODE_MATCH_NO_TEMPLATE_UPDATE | FP_MODE_DONT_CHANGE)
 
 #define FP_MODES_WITH_AUTHENTICATION (FP_MODE_ENROLL_SESSION | FP_MODE_MATCH)
+#define FP_MODES_CRYPTO_IN_PROGRESS \
+	(FP_MODE_ENCRYPT_TEMPLATE | FP_MODE_DECRYPT_TEMPLATE)
+#define FP_MODES_TEMPLATE_OPERATION                                      \
+	(FP_MODE_ENROLL_SESSION | FP_MODE_ENROLL_IMAGE | FP_MODE_MATCH | \
+	 FP_MODE_RESET_SENSOR | FP_MODE_ENCRYPT_TEMPLATE |               \
+	 FP_MODE_DECRYPT_TEMPLATE)
 
 /* Capture types defined in bits [30..26] */
 #define FP_MODE_CAPTURE_TYPE_SHIFT 26
@@ -8386,6 +8567,7 @@ struct ec_params_fp_passthru {
 /**
  * enum fp_capture_type - Specifies the "mode" when capturing images.
  *
+ * @FP_CAPTURE_TYPE_INVALID: an invalid capture type
  * @FP_CAPTURE_VENDOR_FORMAT: Capture 1-3 images and choose the best quality
  * image (produces 'frame_size' bytes)
  * @FP_CAPTURE_SIMPLE_IMAGE: Simple raw image capture (produces width x height x
@@ -8402,7 +8584,9 @@ struct ec_params_fp_passthru {
  * @note This enum must remain ordered, if you add new values you must ensure
  * that FP_CAPTURE_TYPE_MAX is still the last one.
  */
+/* LINT.IfChange */
 enum fp_capture_type {
+	FP_CAPTURE_TYPE_INVALID = -1,
 	FP_CAPTURE_VENDOR_FORMAT = 0,
 	FP_CAPTURE_DEFECT_PXL_TEST = 1,
 	FP_CAPTURE_ABNORMAL_TEST = 2,
@@ -8414,6 +8598,9 @@ enum fp_capture_type {
 	FP_CAPTURE_RESET_TEST = 20,
 	FP_CAPTURE_TYPE_MAX,
 };
+/* LINT.ThenChange(/test/fpsensor_utils.cc,
+ * /zephyr/test/fingerprint/task/src/fpsensor_debug.cc)
+ */
 
 /* The maximum number of capture types in enum fp_capture_type */
 #define FP_MAX_CAPTURE_TYPES 9
@@ -8539,6 +8726,31 @@ struct ec_response_fp_info_v2 {
 } __ec_align4;
 BUILD_ASSERT(sizeof(struct ec_response_fp_info_v2) == 36);
 
+struct fp_image_frame_params_v2 {
+	/* Image frame characteristics */
+	uint32_t frame_size;
+	uint32_t image_data_offset_bytes; /**< Byte offset of image buffer */
+	uint32_t pixel_format; /* using V4L2_PIX_FMT_ */
+	uint16_t width;
+	uint16_t height;
+	uint16_t bpp;
+	/** Type of image capture from enum fp_capture_type. */
+	uint8_t fp_capture_type;
+	uint8_t reserved; /**< padding for alignment */
+} __ec_align4;
+BUILD_ASSERT(sizeof(struct fp_image_frame_params_v2) == 20);
+
+struct ec_response_fp_info_v3 {
+	/* Sensor identification */
+	struct fp_sensor_info sensor_info;
+	/* Template/finger current information */
+	struct fp_template_info template_info;
+	/* fingerprint image frame parameters */
+	struct fp_image_frame_params_v2
+		image_frame_params[FLEXIBLE_ARRAY_MEMBER_SIZE];
+} __ec_align4;
+BUILD_ASSERT(sizeof(struct ec_response_fp_info_v3) == 36);
+
 /* Get the last captured finger frame or a template content */
 #define EC_CMD_FP_FRAME 0x0404
 
@@ -8591,6 +8803,33 @@ struct ec_params_fp_frame {
 	uint32_t size;
 } __ec_align4;
 
+/*
+ * FP_FRAME commands:
+ *
+ * - FP_FRAME_GET_RAW_IMAGE command can be used to get raw image from sensor.
+ *   This command works only when the system is not locked. The template index
+ *   is ignored.
+ * - FP_FRAME_ENCRYPT_TEMPLATE command is used to request encryption of the
+ *   template with provided template index. Offset and size are ignored.
+ *   The encryption process is considered as started only after EC_SUCCESS
+ *   was returned.
+ * - FP_FRAME_GET_ENCRYPTED_TEMPLATE command is used to obtain the encrypted
+ *   template.
+ */
+enum fp_frame_cmd {
+	FP_FRAME_GET_RAW_IMAGE = 0,
+	FP_FRAME_ENCRYPT_TEMPLATE = 1,
+	FP_FRAME_GET_ENCRYPTED_TEMPLATE = 2,
+};
+
+struct ec_params_fp_frame_v1 {
+	uint8_t cmd;
+	uint8_t reserved;
+	uint16_t index;
+	uint32_t offset;
+	uint32_t size;
+} __ec_align4;
+
 /* Load a template into the MCU */
 #define EC_CMD_FP_TEMPLATE 0x0405
 
@@ -8600,6 +8839,27 @@ struct ec_params_fp_frame {
 struct ec_params_fp_template {
 	uint32_t offset;
 	uint32_t size;
+	uint8_t data[FLEXIBLE_ARRAY_MEMBER_SIZE];
+} __ec_align4;
+
+/*
+ * FP_TEMPLATE commands:
+ *
+ * - FP_TEMPLATE_LOAD command is used to copy part of the template to FPMCU
+ *   buffer.
+ * - FP_TEMPLATE_DECRYPT command starts template decryption.
+ * - FP_TEMPLATE_GET_RESULT command is used to check decryption result.
+ */
+enum fp_template_cmd {
+	FP_TEMPLATE_LOAD = 0,
+	FP_TEMPLATE_DECRYPT = 1,
+	FP_TEMPLATE_GET_RESULT = 2,
+};
+
+struct ec_params_fp_template_v1 {
+	uint32_t offset;
+	uint32_t size;
+	uint8_t cmd;
 	uint8_t data[FLEXIBLE_ARRAY_MEMBER_SIZE];
 } __ec_align4;
 
@@ -8663,6 +8923,8 @@ struct ec_params_fp_seed {
 #define FP_CONTEXT_USER_ID_SET BIT(3)
 /* The operation authentication challenge was generated */
 #define FP_AUTH_CHALLENGE_SET BIT(4)
+/* Encrypted template is available */
+#define FP_ENCRYPTED_TEMPLATE_READY BIT(5)
 
 struct ec_response_fp_encryption_status {
 	/* Used bits in encryption engine status */
@@ -8794,6 +9056,50 @@ struct ec_response_fp_sign_match {
 	uint8_t signature[FP_MAC_LENGTH];
 } __ec_align4;
 
+/*
+ * Fingerprint ASCP claim command.
+ *
+ */
+#define EC_CMD_FP_ASCP_CLAIM 0x0420
+
+/*
+ * ECC public key with no point compression as defined in
+ * ANSI X9.62 section 4.3.6 (0x04||x||y), P256v1 curve.
+ */
+#define FP_ASCP_KEY_SIZE 65
+/* ECC signature, P256v1 curve, P1363 encoding (r||s) */
+#define FP_ASCP_SIGNATURE_SIZE 64
+/* SHA256 */
+#define FP_ASCP_HASH_SIZE 32
+
+struct ec_response_fp_ascp_claim {
+	/* Model public key. */
+	uint8_t pk_m[FP_ASCP_KEY_SIZE];
+	/* Model public key signature. */
+	uint8_t s_goog[FP_ASCP_SIGNATURE_SIZE];
+	/* Device public key. */
+	uint8_t pk_d[FP_ASCP_KEY_SIZE];
+	/* Device public key signature (signed using model key). */
+	uint8_t s_m[FP_ASCP_SIGNATURE_SIZE];
+	/* Ephemeral public key used in ECDH procedure. */
+	uint8_t pk_f[FP_ASCP_KEY_SIZE];
+	/* SHA256 hash of the firmware. */
+	uint8_t h_f[FP_ASCP_HASH_SIZE];
+	/* Signature of the SHA256( 0xC001 || h_f || pk_f) using device key. */
+	uint8_t s_d[FP_ASCP_SIGNATURE_SIZE];
+} __ec_align4;
+
+/*
+ * Fingerprint ASCP establish command.
+ *
+ */
+#define EC_CMD_FP_ASCP_ESTABLISH 0x0421
+
+struct ec_params_fp_ascp_establish {
+	/* TA's ephemeral public key. */
+	uint8_t pk_g[FP_ASCP_KEY_SIZE];
+} __ec_align4;
+
 /*****************************************************************************/
 /* Touchpad MCU commands: range 0x0500-0x05FF */
 
@@ -8908,6 +9214,38 @@ struct ec_response_battery_static_info_v2 {
 	char chemistry[SBS_MAX_STR_OBJ_SIZE];
 } __ec_align4;
 
+/**
+ * struct ec_response_battery_static_info_v3 - hostcmd v3 battery static info
+ *
+ * Extends struct ec_response_battery_static_info_v2 with
+ * manuf_info.
+ *
+ * @design_capacity: battery design capacity (in mAh)
+ * @design_voltage: battery design voltage (in mV)
+ * @cycle_count: battery cycle count
+ * @manufacturer: battery manufacturer string
+ * @device_name: battery model string
+ * @serial: battery serial number string
+ * @chemistry: battery type string
+ * @manuf_info: battery manufacture info string (vendor specific)
+ * @manuf_year: battery manufacture year
+ * @manuf_month: battery manufacture month
+ * @manuf_day: battery manufacture day
+ */
+struct ec_response_battery_static_info_v3 {
+	uint16_t design_capacity;
+	uint16_t design_voltage;
+	uint32_t cycle_count;
+	char manufacturer[SBS_MAX_STR_OBJ_SIZE];
+	char device_name[SBS_MAX_STR_OBJ_SIZE];
+	char serial[SBS_MAX_STR_OBJ_SIZE];
+	char chemistry[SBS_MAX_STR_OBJ_SIZE];
+	char manuf_info[SBS_MAX_STR_OBJ_SIZE];
+	uint16_t manuf_year;
+	uint8_t manuf_month;
+	uint8_t manuf_day;
+} __ec_align4;
+
 /*
  * Get battery dynamic information, i.e. information that is likely to change
  * every time it is read.
@@ -8940,6 +9278,29 @@ struct ec_response_battery_dynamic_info {
 	int16_t flags;
 	int16_t desired_voltage;
 	int16_t desired_current;
+} __ec_align2;
+
+/**
+ * struct ec_response_battery_dynamic_info_v1 - Battery dynamic info response
+ * (v1)
+ * @actual_voltage: Battery voltage (mV)
+ * @actual_current: Battery current (mA); negative=discharging
+ * @remaining_capacity: Remaining capacity (mAh)
+ * @full_capacity: Capacity (mAh, might change occasionally)
+ * @flags: Flags, see EC_BATT_FLAG_*
+ * @desired_voltage: Charging voltage desired by battery (mV)
+ * @desired_current: Charging current desired by battery (mA)
+ * @temperature: Battery temperature (dK)
+ */
+struct ec_response_battery_dynamic_info_v1 {
+	int16_t actual_voltage;
+	int16_t actual_current;
+	int16_t remaining_capacity;
+	int16_t full_capacity;
+	int16_t flags;
+	int16_t desired_voltage;
+	int16_t desired_current;
+	uint16_t temperature;
 } __ec_align2;
 
 /*
