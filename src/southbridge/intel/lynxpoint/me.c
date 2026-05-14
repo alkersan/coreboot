@@ -714,6 +714,23 @@ static int intel_me_extend_valid(struct device *dev)
 	return 0;
 }
 
+static void intel_me_print_mbp(struct me_bios_payload *mbp_data)
+{
+	me_print_fw_version(mbp_data->fw_version_name);
+
+	if (CONFIG(DEBUG_INTEL_ME))
+		me_print_fwcaps(mbp_data->fw_capabilities);
+
+	if (mbp_data->plat_time) {
+		printk(BIOS_DEBUG, "ME: Wake Event to ME Reset:      %u ms\n",
+		       mbp_data->plat_time->wake_event_mrst_time_ms);
+		printk(BIOS_DEBUG, "ME: ME Reset to Platform Reset:  %u ms\n",
+		       mbp_data->plat_time->mrst_pltrst_time_ms);
+		printk(BIOS_DEBUG, "ME: Platform Reset to CPU Reset: %u ms\n",
+		       mbp_data->plat_time->pltrst_cpurst_time_ms);
+	}
+}
+
 static u32 me_to_host_words_pending(void)
 {
 	union mei_csr me = read_me_csr();
@@ -878,22 +895,7 @@ static void intel_me_init(struct device *dev)
 
 	if (intel_me_read_mbp(&mbp_data, dev))
 		return;
-
-	if (CONFIG_DEFAULT_CONSOLE_LOGLEVEL >= BIOS_DEBUG) {
-		me_print_fw_version(mbp_data.fw_version_name);
-
-		if (CONFIG(DEBUG_INTEL_ME))
-			me_print_fwcaps(mbp_data.fw_capabilities);
-
-		if (mbp_data.plat_time) {
-			printk(BIOS_DEBUG, "ME: Wake Event to ME Reset:      %u ms\n",
-			       mbp_data.plat_time->wake_event_mrst_time_ms);
-			printk(BIOS_DEBUG, "ME: ME Reset to Platform Reset:  %u ms\n",
-			       mbp_data.plat_time->mrst_pltrst_time_ms);
-			printk(BIOS_DEBUG, "ME: Platform Reset to CPU Reset: %u ms\n",
-			       mbp_data.plat_time->pltrst_cpurst_time_ms);
-		}
-	}
+	intel_me_print_mbp(&mbp_data);
 
 	/* Set clock enables according to devicetree */
 	if (config && config->icc_clock_disable)
