@@ -870,7 +870,11 @@ static int intel_me_read_mbp(struct me_bios_payload *mbp_data, struct device *de
 		break; \
 	}
 
-	/* Setup the pointers in the me_bios_payload structure. */
+	/*
+	 * Set up the pointers in the me_bios_payload structure.
+	 * We must NOT free `mbp` afterwards, because the memory
+	 * is still referenced by the pointers in `mbp_data`!
+	 */
 	for (i = 0; i < mbp->header.mbp_size - 1;) {
 		struct mbp_item_header *item = (void *)&mbp->data[i];
 
@@ -914,7 +918,6 @@ static int intel_me_read_mbp(struct me_bios_payload *mbp_data, struct device *de
 	}
 	#undef ASSIGN_FIELD_PTR
 
-	free(mbp);
 	return ret;
 }
 
