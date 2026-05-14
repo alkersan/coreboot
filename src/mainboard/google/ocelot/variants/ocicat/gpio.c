@@ -150,7 +150,7 @@ static const struct pad_config gpio_table[] = {
 	/* GPP_D03:     NC */
 	PAD_NC(GPP_D03, NONE),
 	/* GPP_D05:     ISH_UART0_ECAIC_RXD */
-	PAD_CFG_NF(GPP_D05, NONE, DEEP, NF2),
+	PAD_NC(GPP_D05, NONE),
 	/* GPP_D06:     ISH_UART0_ECAIC_TXD */
 	PAD_CFG_NF(GPP_D06, NONE, DEEP, NF2),
 	/* GPP_D07:     NC */
