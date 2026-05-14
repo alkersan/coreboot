@@ -924,7 +924,7 @@ static int intel_me_read_mbp(struct me_bios_payload *mbp_data, struct device *de
 /* Check whether ME is present and do basic init */
 static void intel_me_init(struct device *dev)
 {
-	const struct southbridge_intel_wildcatpoint_config *config = config_of(dev);
+	const struct southbridge_intel_wildcatpoint_config *config = dev->chip_info;
 	enum me_bios_path path = intel_me_path(dev);
 	struct me_bios_payload mbp_data;
 
@@ -954,7 +954,7 @@ static void intel_me_init(struct device *dev)
 	intel_me_print_mbp(&mbp_data);
 
 	/* Set clock enables according to devicetree */
-	if (config->icc_clock_disable)
+	if (config && config->icc_clock_disable)
 		me_icc_set_clock_enables(config->icc_clock_disable);
 
 	/* Make sure ME is in a mode that expects EOP */
