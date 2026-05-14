@@ -1938,7 +1938,13 @@ static int google_chromeec_read_batt_state_of_charge_raw(uint32_t *state)
 	if (resp.full_capacity <= 0)
 		return -1;
 
-	uint32_t soc = (uint32_t)resp.remaining_capacity * 100 / (uint32_t)resp.full_capacity;
+	/*
+	 * Integer Ceiling Math Formula: (X + Y - 1) / Y
+	 * This forces any fractional remainder to push up to the next integer.
+	 */
+	uint64_t numerator = ((uint64_t)resp.remaining_capacity * 100) +
+				 (uint64_t)resp.full_capacity - 1;
+	uint32_t soc = (uint32_t)(numerator / (uint64_t)resp.full_capacity);
 
 	/* Clamp the value to 100% (some fuel gauges report slight overflows) */
 	if (soc > 100)
