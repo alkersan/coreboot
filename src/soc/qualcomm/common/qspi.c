@@ -147,16 +147,18 @@ static void cs_change(enum cs_state state)
  */
 __weak void qspi_configure_gpios(void)
 {
+	uint32_t drive_str = CONFIG_QC_SPI_DRIVE_STRENGTH_MA;
+
 	gpio_output(QSPI_CS, 1);
 
 	gpio_configure(QSPI_DATA_0, GPIO_FUNC_QSPI_DATA_0,
-		GPIO_NO_PULL, GPIO_8MA, GPIO_OUTPUT);
+		GPIO_NO_PULL, drive_str, GPIO_OUTPUT);
 
 	gpio_configure(QSPI_DATA_1, GPIO_FUNC_QSPI_DATA_1,
-		GPIO_NO_PULL, GPIO_8MA, GPIO_OUTPUT);
+		GPIO_NO_PULL, drive_str, GPIO_OUTPUT);
 
 	gpio_configure(QSPI_CLK, GPIO_FUNC_QSPI_CLK,
-		GPIO_NO_PULL, GPIO_8MA, GPIO_OUTPUT);
+		GPIO_NO_PULL, drive_str, GPIO_OUTPUT);
 }
 
 static void queue_bounce_data(uint8_t *data, uint32_t data_bytes,

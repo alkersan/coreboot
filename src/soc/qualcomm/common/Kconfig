@@ -128,4 +128,13 @@ config QC_QDUTT_ENABLE
 	  validating signal integrity and optimizing DRAM performance
 	  on new hardware iterations.
 
+config QC_SPI_DRIVE_STRENGTH_MA
+	int
+	default 3
+	help
+	  Sets the drive strength for the QSPI GPIO lines (CLK, DATA_0, DATA_1).
+	  Lower frequencies default to 8mA (GPIO_8MA aka 3).
+	  Allow SoC/mainboard to override the SPI drive strength as applicable.
+	  Refer to `GPIO TLMM: Drive Strength` enum inside gpio_common.h
+
 endif
